@@ -1,0 +1,2020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lock &amp; Connect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#E9EEF5; --surface:#FFFFFF; --ink:#14213D; --muted:#5B6780; --line:#D5DCE8;
+  --brand:#14213D; --onbrand:#FFFFFF; --lock:#FFC940; --onlock:#14213D;
+  --ok:#12867E; --okbg:#DDF3F0; --bad:#C93B3B; --badbg:#FBE4E4; --late:#B7791F; --latebg:#FCEFD2;
+  --shadow:0 1px 2px rgba(20,33,61,.08);
+  --head:'Bricolage Grotesque','Trebuchet MS',system-ui,sans-serif;
+  --body:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0B1220; --surface:#16213A; --ink:#EAF0FB; --muted:#9DABC6; --line:#2A3757;
+    --brand:#FFC940; --onbrand:#14213D; --lock:#FFC940; --onlock:#14213D;
+    --okbg:#12342F; --badbg:#3B1D22; --latebg:#3A2F14; --ok:#4FD1C5; --bad:#FF8A8A; --late:#F6C761;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B1220; --surface:#16213A; --ink:#EAF0FB; --muted:#9DABC6; --line:#2A3757;
+  --brand:#FFC940; --onbrand:#14213D; --lock:#FFC940; --onlock:#14213D;
+  --okbg:#12342F; --badbg:#3B1D22; --latebg:#3A2F14; --ok:#4FD1C5; --bad:#FF8A8A; --late:#F6C761;
+}
+*,*::before,*::after{box-sizing:inherit}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.4;display:flex;justify-content:center}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--lock);outline-offset:2px}
+.phone{width:100%;max-width:430px;height:100%;display:flex;flex-direction:column;background:var(--bg);position:relative;overflow:hidden}
+@media (min-width:600px){.phone{height:min(880px,100%);margin:auto;border-radius:28px;border:1px solid var(--line);box-shadow:0 20px 50px rgba(20,33,61,.18)}}
+.top{padding:14px 18px 10px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.top h1{font:800 22px/1.1 var(--head);margin:0}
+.top small{color:var(--muted);display:block;font-size:12px}
+.top>div:first-child{min-width:0}
+.top .chip{white-space:nowrap;flex:none}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600}
+.scroll{flex:1;overflow-y:auto;padding:4px 16px 18px;-webkit-overflow-scrolling:touch}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow)}
+.card h2{font:800 17px/1.2 var(--head);margin:0 0 4px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 10px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.btn{border:0;border-radius:12px;padding:11px 16px;font-weight:600;background:var(--brand);color:var(--onbrand)}
+.btn.alt{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.btn.lock{background:var(--lock);color:var(--onlock)}
+.btn.bad{background:var(--bad);color:#fff}
+.btn.block{width:100%}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.tabs{display:flex;border-top:1px solid var(--line);background:var(--surface);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabs button{flex:1;border:0;background:none;padding:11px 4px 10px;font-weight:600;font-size:13px;color:var(--muted);border-top:3px solid transparent}
+.tabs button[aria-current="page"]{color:var(--ink);border-top-color:var(--lock)}
+/* dial */
+.dial{display:flex;flex-direction:column;align-items:center;padding:2px 0 4px}
+.dial svg{width:150px;height:150px}
+.dial .big{font:800 34px/1 var(--head)}
+.state{font-weight:600;margin-top:6px;text-align:center}
+/* apps */
+.app{display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--line)}
+.app:first-of-type{border-top:0}
+.ico{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font:800 15px var(--head);color:#fff}
+.app .nm{flex:1;font-weight:600}
+.app .st{font-size:12px;color:var(--muted);font-weight:400}
+.tag{font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--lock);color:var(--onlock)}
+.tag.off{background:var(--line);color:var(--muted)}
+.stepper{display:flex;align-items:center;gap:10px}
+.stepper button{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-size:18px;font-weight:700}
+.stepper b{min-width:64px;text-align:center;font:800 18px var(--head)}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.pill{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600}
+.pill[aria-pressed="true"]{background:var(--brand);color:var(--onbrand);border-color:var(--brand)}
+.note{background:var(--latebg);color:var(--ink);border-radius:12px;padding:10px 12px;font-size:13px}
+.spent{display:flex;justify-content:space-between;align-items:baseline}
+.spent b{font:800 26px var(--head)}
+details summary{cursor:pointer;font-weight:600;padding:4px 0}
+details p,details li{font-size:13px;color:var(--muted)}
+/* toast */
+.toast{position:absolute;left:12px;right:12px;top:calc(10px + env(safe-area-inset-top,0px));background:var(--brand);color:var(--onbrand);border-radius:14px;padding:11px 14px;font-size:13px;z-index:30;box-shadow:0 8px 24px rgba(0,0,0,.25);animation:drop .25s ease-out}
+.toast b{display:block}
+@keyframes drop{from{transform:translateY(-12px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.toast{animation:none}}
+/* modal */
+.scrim{position:absolute;inset:0;background:rgba(10,16,30,.55);display:flex;align-items:flex-end;z-index:60}
+.sheet{background:var(--surface);width:100%;border-radius:22px 22px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom,0px));max-height:90%;overflow-y:auto}
+.sheet h2{font:800 20px/1.2 var(--head);margin:0 0 4px}
+.opt{width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:13px;margin-top:10px}
+.opt b{display:block;font-size:16px}
+.opt span{color:var(--muted);font-size:13px}
+.bar{height:10px;border-radius:9px;background:var(--line);overflow:hidden;margin:12px 0 6px}
+.bar i{display:block;height:100%;background:var(--lock)}
+.pin{display:flex;gap:10px;margin:14px 0}
+.pin input{width:100%;font:800 24px var(--head);text-align:center;letter-spacing:8px;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.err{color:var(--bad);font-size:13px;min-height:18px}
+/* seating grid */
+.seg{display:flex;background:var(--bg);border-radius:12px;padding:3px;margin-bottom:10px}
+.seg button{flex:1;border:0;background:none;padding:8px;border-radius:10px;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.board{text-align:center;font-size:12px;font-weight:600;color:var(--muted);border:1px dashed var(--line);border-radius:8px;padding:5px;margin-bottom:10px}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.desk{aspect-ratio:1;border-radius:12px;border:1px solid var(--line);background:var(--surface);font-weight:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12px;padding:2px;overflow:hidden}
+.desk.name-edit{background:var(--bg);gap:3px}
+.desk.name-edit small{color:var(--muted);font-weight:700}
+.deskname{width:92%;font-size:16px;text-align:center;border:1px solid var(--line);border-radius:6px;padding:1px;background:var(--surface);color:var(--ink)}
+.desk small{font-size:11px;font-weight:600}
+.desk.P{background:var(--okbg);border-color:var(--ok);color:var(--ok)}
+.desk.A{background:var(--badbg);border-color:var(--bad);color:var(--bad)}
+.desk.L{background:var(--latebg);border-color:var(--late);color:var(--late)}
+.desk.E{background:#E6EFFD;border-color:#3B6FD6;color:#3B6FD6}
+.desk.C{background:#F3E6FB;border-color:#8A3FBF;color:#8A3FBF}
+.desk:disabled{opacity:.7;cursor:default}
+.counts{display:flex;gap:8px;margin:10px 0;flex-wrap:wrap}
+.counts div,.counts button{flex:1;min-width:60px;border-radius:12px;padding:8px;text-align:center;font-size:12px;font-weight:600;border:none;font-family:inherit;cursor:pointer}
+.counts b{display:block;font:800 20px var(--head)}
+.log{font-size:13px;color:var(--muted);margin:6px 0 0;padding-left:16px}
+input[type=text],textarea{width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-family:inherit;font-size:16px}
+.q{border-top:1px solid var(--line);padding-top:10px;margin-top:10px}
+.qhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.qtools{display:flex;gap:4px}
+.qtools button{border:1px solid var(--line);background:var(--surface);border-radius:8px;width:26px;height:26px;font-size:12px;color:var(--muted)}
+.qtools button:disabled{opacity:.35}
+.q label{display:flex;align-items:center;gap:8px;margin-top:6px}
+.q label input[type=text]{flex:1}
+.status{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.st-pill{font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px}
+.st-pill.ok{background:var(--okbg);color:var(--ok)}
+.st-pill.wait{background:var(--latebg);color:var(--late)}
+/* chat */
+.banner{background:var(--lock);color:var(--onlock);font-weight:700;border-radius:12px;padding:10px 12px;margin-bottom:10px;font-size:13px}
+.banner.idle{background:var(--line);color:var(--muted)}
+.msgs{display:flex;flex-direction:column;gap:8px;padding-bottom:6px}
+.m{max-width:82%;padding:9px 12px;border-radius:16px;font-size:14px}
+.m small{display:block;font-weight:700;font-size:11px;margin-bottom:2px;opacity:.75}
+.m.t{background:var(--surface);border:1px solid var(--line);align-self:flex-start;border-bottom-left-radius:4px}
+.m.s{background:var(--brand);color:var(--onbrand);align-self:flex-end;border-bottom-right-radius:4px}
+.compose{display:flex;gap:8px;padding:10px 16px;border-top:1px solid var(--line);background:var(--surface);align-items:center}
+.emojibar{display:flex;gap:6px;padding:8px 16px 0;background:var(--surface);overflow-x:auto}
+.emojibtn{border:1px solid var(--line);background:var(--bg);border-radius:999px;width:38px;height:38px;font-size:18px;flex:none;display:flex;align-items:center;justify-content:center}
+.iconbtn{border:1px solid var(--line);background:var(--bg);border-radius:12px;width:40px;height:40px;font-size:18px;flex:none;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.m.photo img{max-width:100%;border-radius:12px;display:block;margin-top:2px}
+.m.emoji .bigemoji{font-size:34px;line-height:1.1;display:block}
+.compose input{flex:1}
+.hint{font-size:12px;color:var(--muted)}
+.kidrow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.kidpill{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;font-weight:700;font-size:13px;color:var(--ink)}
+.kidpill.on{background:var(--brand);color:var(--onbrand);border-color:var(--brand)}
+.kidpill.add{background:transparent;border:1px dashed var(--muted);color:var(--muted);font-weight:600}
+.schedrow{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.timerow{display:flex;gap:10px;margin-top:6px}
+.timelab{flex:1;font-size:12px;font-weight:700;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.timelab .timein{width:100%}
+.feedlist{margin-top:10px}
+.feedcard{padding:12px 14px}
+.seg.sm{padding:2px;margin-bottom:8px}
+.seg.sm button{padding:6px;font-size:12px}
+.post{border-radius:12px;padding:10px;margin-top:8px}
+.post:first-child{margin-top:0}
+.post.reg{background:#EAF1FF}
+.post.sos{background:var(--badbg);border:2px solid var(--bad)}
+@media (prefers-reduced-motion:no-preference){
+  .post.sos{animation:sosvib .5s ease-in-out 2}
+}
+@keyframes sosvib{0%,100%{transform:translateX(0)}20%{transform:translateX(-4px)}40%{transform:translateX(4px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+.post-head{display:flex;align-items:center;gap:8px}
+.post-ico{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;flex:none}
+.post-who{display:flex;flex-direction:column}
+.post-who b{font-size:12.5px}
+.post-who span{font-size:10px;color:var(--muted);font-weight:600}
+.post-body{margin:6px 0 0;font-size:12.5px;line-height:1.35}
+.post-eng{margin-top:6px;font-size:11px;color:var(--muted);font-weight:600}
+.seg button.hasnew{background:#2563EB;color:#fff}
+.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--bg);border-radius:12px;padding:10px 6px;text-align:center}
+.stat b{display:block;font:800 20px var(--head);color:var(--ink)}
+.stat span{font-size:10px;color:var(--muted);font-weight:600;line-height:1.2;display:block;margin-top:2px}
+.swlabel{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;width:100%}
+.swlabel input[type=checkbox]{width:16px;height:16px}
+.timein{padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-family:inherit;font-size:16px}
+.timein:disabled{opacity:.5}
+.navdot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--bad);vertical-align:top;margin-left:2px}
+.filtergrid{display:flex;flex-direction:column;gap:10px}
+.filtercard{text-align:left;border:2px solid var(--line);background:var(--surface);border-radius:16px;padding:14px;width:100%}
+.filtercard.on{border-color:var(--ok);background:var(--okbg)}
+.filtercard:disabled{cursor:default}
+.fc-top{display:flex;align-items:center;gap:10px}
+.fc-ico{font-size:26px;flex:none}
+.fc-top b{display:block;font-size:16px}
+.fc-age{font-size:12px;color:var(--muted);font-weight:400}
+.fc-check{margin-left:auto;font-size:12px;font-weight:700;color:var(--ok);white-space:nowrap}
+.fc-list{margin:10px 0 0;padding-left:18px;font-size:13px;color:var(--muted)}
+.fc-list li{margin-top:3px}
+.swrap{display:flex;align-items:center;gap:8px;flex:none}
+.swrap span{font-size:12px;font-weight:700;color:var(--muted)}
+.sw{position:relative;width:50px;height:28px;border-radius:999px;border:0;background:var(--line);flex:none;transition:background .15s}
+.sw.on{background:var(--ok)}
+.sw i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:left .15s}
+.sw.on i{left:25px}
+.chip.sosbtn{background:#B3261E;color:#fff;border-color:#B3261E;font-weight:800}
+.hold{position:relative;overflow:hidden;width:100%;margin-top:14px;padding:18px;border:0;border-radius:14px;background:#7F1D1D;color:#fff;font-weight:800;font-size:16px;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.hold #holdBar{position:absolute;top:0;bottom:0;left:0;width:0;background:#E5484D}
+.hold .ht{position:relative}
+.sosfull{position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;gap:12px;padding:calc(22px + env(safe-area-inset-top,0px)) 20px calc(20px + env(safe-area-inset-bottom,0px));overflow-y:auto;color:#fff;background:#B3261E}
+.sosfull.drill{background:#8A5A00}
+.sosfull.clear{background:#0F6B64}
+.sosfull>*{flex:none}
+.sosfull h1{font:800 38px/1.05 var(--head);margin:0}
+.sosfull p{font-size:17px;margin:0}
+.sosfull .skick{font-size:13px;font-weight:600;opacity:.9}
+.sosfull .sdrill{background:#fff;color:#8A5A00;font-weight:800;border-radius:10px;padding:8px 12px;text-align:center}
+.sosfull .sbtn{border:0;border-radius:14px;padding:16px;font-weight:800;font-size:17px;background:#fff;color:#7F1D1D}
+.sosfull.clear .sbtn{color:#0F6B64}
+.sosfull .sbtn.ghost{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.7);font-size:15px}
+.sosfull .sbtn:disabled{opacity:.75}
+.sosfull .sfine,.sosfull .snote{font-size:13px;opacity:.92}
+.sosfull .snote{background:rgba(0,0,0,.22);border-radius:12px;padding:10px 12px}
+.sosfull .scount{font-size:16px}.sosfull .scount b{font:800 30px var(--head)}
+.sosfull .desk{color:var(--ink);cursor:default}
+.sosfull .desk.P{color:var(--ok)}
+.sosfull .slink{margin-top:auto;border:0;background:none;color:#fff;opacity:.75;text-decoration:underline;font-size:12px;padding:8px}
+.vault{border:5px solid var(--brand);border-radius:20px;padding:12px;margin-top:12px;background:var(--bg);min-height:96px}
+.vault.locked{border-color:var(--lock)}
+.vault.myvault{border-style:dashed}
+.vault.myvault.locked{border-color:var(--ok)}
+.vault .empty{text-align:center;color:var(--muted);margin:14px 0}
+.vstat{font-size:12px;font-weight:600;color:var(--muted);margin-top:10px;text-align:center}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:9px 2px 7px;border:1px solid var(--line);background:var(--surface);border-radius:14px;min-width:0}
+.tile .tn{font-size:11px;font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tile.in{border-color:var(--brand)}
+.tile.lk{opacity:.85}
+.tile .badge{position:absolute;top:2px;right:4px;font-size:11px}
+.tile.pop{animation:pop .35s ease-out}
+.tilebtn{display:flex;flex-direction:column;align-items:center;gap:5px;width:100%;border:0;background:none;padding:0;min-width:0}
+.tilebtn:disabled{opacity:.6}
+.tilex{position:absolute;top:-8px;right:-8px;width:26px;height:26px;border-radius:50%;background:var(--bad);color:#fff;border:2px solid var(--surface);font-size:13px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;padding:0}
+.tileout{width:100%;border:0;background:none;color:var(--bad);font-size:10.5px;font-weight:700;padding:3px 0 0;cursor:pointer;text-decoration:underline}
+@keyframes pop{0%{transform:scale(.6);opacity:.3}70%{transform:scale(1.08)}100%{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.tile.pop{animation:none}}
+.field{display:block;width:100%;margin-top:4px;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink)!important;font-family:inherit;font-size:16px;font-weight:400}
+input,textarea,select{color:var(--ink)!important}
+input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus,input:-webkit-autofill:active,textarea:-webkit-autofill,select:-webkit-autofill{
+  -webkit-text-fill-color:var(--ink)!important;
+  -webkit-box-shadow:0 0 0 1000px var(--surface) inset!important;
+  box-shadow:0 0 0 1000px var(--surface) inset!important;
+  caret-color:var(--ink);
+}
+.linklike{border:0;background:none;color:var(--brand);font-weight:700;text-decoration:underline;padding:0;font:inherit;cursor:pointer}
+.lab{display:block;margin-top:12px;font-weight:600;font-size:13px}
+.alertbox{background:var(--badbg);color:var(--bad);border-radius:12px;padding:10px 12px;font-size:13px;font-weight:600;margin-top:10px}
+.back{border:0;background:none;color:var(--muted);font-weight:600;padding:8px 0}
+</style>
+</head>
+<body>
+<div class="phone" id="phone">
+  <div class="top" id="top"></div>
+  <div class="scroll" id="view"></div>
+  <div id="composeWrap"></div>
+  <nav class="tabs" id="tabs"></nav>
+</div>
+
+<script>
+'use strict';
+let PIN = '1234';
+let ADMIN_PIN = '9999';
+function makeCode(n){ const l=(n.trim().slice(0,3).toUpperCase().replace(/[^A-Z]/g,'')||'KID'); return l+'-'+(1000+Math.floor(Math.random()*9000)); }
+function makeClassCode(){ return 'CLS-'+(1000+Math.floor(Math.random()*9000)); }
+function newKid(name, age, opts){
+  opts = opts || {};
+  return {
+    name: name, ageGroup: age||'6-12', classId: opts.classId!=null?opts.classId:null, desk: opts.desk!=null?opts.desk:null,
+    linkCode: makeCode(name), vaultActive: true, filterLevel: age==='13-18'?'teen':(age==='6-12'?'young':'child'),
+    phone: [
+      {n:'TikTok', c:'#111827', i:'T', v:true}, {n:'Roblox', c:'#0F766E', i:'R', v:true}, {n:'Mobile Legends', c:'#7C3AED', i:'ML', v:true},
+      {n:'Facebook', c:'#2563EB', i:'f', v:false}, {n:'YouTube', c:'#DC2626', i:'Y', v:false}, {n:'Instagram', c:'#C13584', i:'IG', v:false},
+      {n:'Snapchat', c:'#B7A000', i:'S', v:false}, {n:'Minecraft', c:'#3F7D20', i:'M', v:false}, {n:'Fortnite', c:'#4C1D95', i:'F', v:false},
+      {n:'Netflix', c:'#B91C1C', i:'N', v:false}, {n:'Discord', c:'#4F46E5', i:'D', v:false}, {n:'Spotify', c:'#15803D', i:'Sp', v:false}
+    ],
+    active: null, spent: 0, unlocks: 0,
+    schedule: {studyOn:false, studyStart:'19:00', studyEnd:'21:00', bedOn:false, bedStart:'21:00', bedEnd:'06:00'},
+    perfRequested:false, perfSent:false, perfNote:'',
+    timezone: 'Asia/Manila (GMT+8)'
+  };
+}
+function newClass(name, teacherKey, teacherName, code, seedQuiz, subject, time){
+  return {
+    name, teacherKey, teacherName, code, subject: subject||'', time: time||'',
+    session: 'AM', classActive: false, editingNames: false,
+    att: {AM: Array(60).fill(null), PM: Array(60).fill(null)},
+    deskNames: Array(60).fill(''),
+    submitted: {AM:false, PM:false},
+    notes: [], resultSent: false,
+    quiz: seedQuiz || {title:'', published:false, online:false, onlineReleased:false, qs:[]},
+    ans: [], graded: null,
+    chat: [],
+    cutReports: [], excuseLog: []
+  };
+}
+let familyCode = 'FAM-7421';
+const isViewer = () => S.user==='parent2';
+const S = {
+  kids: [
+    newKid('Mia', '6-12', {classId:1, desk:6}),
+    newKid('Leo', '6-12', {})
+  ],
+  classes: [
+    newClass('Grade 6 Sampaguita', 'teacher2', 'Ms. Dela Cruz', 'CLS-4821', {title:'Fractions check', published:false, online:false, onlineReleased:false, qs:[
+      {q:'What is 1/2 + 1/4?', o:['3/4','2/6','1/8','2/4'], a:0},
+      {q:'Which fraction is largest?', o:['1/8','1/3','1/2','1/5'], a:2}
+    ]}, 'Science', '10:00 AM–12:00 PM'),
+    newClass('Grade 6 Orchid', 'teacher', 'Mr. Agramon', 'CLS-9042', null, 'Math', '8:00–10:00 AM'),
+    newClass('Grade 6 Mabini', 'teacher3', 'Ms. Villanueva', 'CLS-7733', null, 'Araling Panlipunan', '10:00 AM–12:00 PM'),
+    newClass('Grade 6 Camia', 'teacher4', 'Mr. Ramos', 'CLS-6050', null, 'MAPEH', '1:00–3:00 PM'),
+    newClass('Grade 6 Oregano', 'teacher5', 'Ms. Florentino', 'CLS-3318', null, 'English', '1:00–3:00 PM'),
+    newClass('Grade 6 Rose', 'teacher6', 'Mr. De Guzman', 'CLS-8855', null, 'Filipino', '9:00–11:00 AM')
+  ],
+  activeClassIdx: null,
+  activeKid: 0, studentKidIndex: 0, replyKidIdx: null,
+  vaultActive: true, sos: null, sosType: 'lockdown', sosDrill: false, sosDismissed: {}, sosLog: [], adminAction: null,
+  unlockUntil: 0, pinFor: null, pinFails: 0, pinLockUntil: 0,
+  user: null, screen: 'landing', signup: {role:null, err:''}, form: {},
+  names: {parent:'Mrs. Santos', parent2:'Mr. Santos', student:'Mia Santos', teacher:'Mr. Agramon', teacher2:'Ms. Dela Cruz', teacher3:'Ms. Villanueva', teacher4:'Mr. Ramos', teacher5:'Ms. Florentino', teacher6:'Mr. De Guzman', principal:'Dr. Aquino', vp:'Mr. Bautista'},
+  tab: 'home',
+  modal: null, adProg: 0, pinErr: '',
+  toast: null,
+  inbox: [],
+  online: true, syncQueue: [], parentEmail: 'mrs.santos@email.com', newKidForm: {}, joinClassCode: '',
+  feedTab: 'news', announceDraft: '',
+  forgot: {step:1, email:'', code:'', sentCode:'', pin1:'', pin2:''},
+  announcements: [
+    {t:'Welcome back!', b:'Classes resume Monday. Please make sure uniforms are labeled.', at: Date.now()-3600000},
+    {t:'Grade 6 Sports Day', b:'Friday, Oct 10, at the covered court. Bring water and sunblock.', at: Date.now()-5400000},
+    {t:'2nd quarter tuition due', b:'Payment deadline is Monday, Oct 6, at the registrar’s office.', at: Date.now()-7200000}
+  ],
+  newAnnouncement: true,
+  role: 's',
+  me: {apps:[
+    {n:'Facebook', i:'f', c:'#3b5998', v:true},
+    {n:'Instagram', i:'IG', c:'#c13584', v:true},
+    {n:'TikTok', i:'♪', c:'#111', v:false},
+    {n:'YouTube', i:'Y', c:'#c4302b', v:false}
+  ]},
+  reminders: [
+    {t:'Grade 6 Sports Day', when:'Fri, Oct 10', date:'2026-10-10', time:'', source:'announcement'}
+  ],
+  lang: 'en',
+  viewSection: null
+};
+S.kids[0].linkCode = 'MIA-1234';
+S.kids[1].linkCode = 'LEO-5678';
+
+// ---- Grade 6 Orchid (teacher, Mr. Agramon) — full named roster, matches demo recording ----
+(function(){
+  const cls = S.classes[1];
+  const names = ['Abby','Aira','Ana','Ben','Carla','Jomar','Dennis','Ella','Franco','Gwen','Hiro','Isay','Lara','Miguel','Nash','Olive','Pau','Rina','Seth','Tala','Vito'];
+  names.forEach((n,i)=>cls.deskNames[i]=n);
+  cls.deskNames[6] = 'Mia';
+  const am = {9:'L', 18:'A'}; // Gwen=Late, Seth=Absent, rest Present
+  for(let i=0;i<names.length;i++) cls.att.AM[i] = am[i] || 'P';
+  cls.submitted.AM = true;
+  cls.chat = [
+    {w:'t', who:'Mr. Agramon', t:'Good morning! Post your questions about today\'s lesson here.'},
+    {w:'s', who:'Student', t:'Is question 2 about comparing fractions?'}
+  ];
+  cls.excuseLog = [
+    {student:'Carla', desk:5, category:'School activity', note:'Choir practice for the school program.', session:'Morning', writtenBy:'Mr. Agramon', dayLabel:'Fri, Oct 2', daysAgo:1},
+    {student:'Ella', desk:8, category:'Sick', note:'Cough and colds. Her mother sent a message in the morning.', session:'All day', writtenBy:'Mr. Agramon', dayLabel:'Thu, Oct 1', daysAgo:2},
+    {student:'Jomar', desk:6, category:'Family matter', note:'Went with his grandmother to the health center.', session:'Morning', writtenBy:'Mr. Agramon', dayLabel:'Wed, Sep 30', daysAgo:3},
+    {student:'Ana', desk:3, category:'School activity', note:'Science quiz bee practice in the library.', session:'Afternoon', writtenBy:'Mr. Agramon', dayLabel:'Tue, Sep 29', daysAgo:4}
+  ];
+})();
+
+// ---- Grade 6 Rose (teacher6, Mr. De Guzman) — full named roster, no cut class seeded ----
+(function(){
+  const cls = S.classes[5];
+  const names = ['Bea','Carlo','Divina','Enzo','Faith','Gab','Hannah','Iñigo','Joy','Kiko','Liza','Marco','Nica','Owen','Paula','Quino','Rhea','Sean','Trina','Uriel','Vince','Wena','Xian','Yna'];
+  names.forEach((n,i)=>cls.deskNames[i]=n);
+  const am = {2:'A', 4:'L', 17:'L', 21:'A'}; // Divina=Absent, Faith=Late, Sean=Late, Wena=Absent
+  for(let i=0;i<names.length;i++) cls.att.AM[i] = am[i] || 'P';
+  cls.submitted.AM = true;
+})();
+
+// ---- Grade 6 Oregano (teacher5, Ms. Florentino) — 15 named students, no cut class seeded ----
+(function(){
+  const cls = S.classes[4];
+  const names = ['Alma','Boyet','Chinky','Dindo','Erika','Fely','Greg','Honey','Ivan','Jing','Kent','Lani','Momar','Neri','Oscar'];
+  names.forEach((n,i)=>cls.deskNames[i]=n);
+  for(let i=0;i<names.length;i++) cls.att.AM[i] = 'P';
+  cls.submitted.AM = true;
+})();
+
+// ---- Grade 6 Sampaguita (teacher2, Ms. Dela Cruz) — 15 named students ----
+(function(){
+  const cls = S.classes[0];
+  const names = ['Patricia','Miko','Joana','Albert','Bettina','Cesar','Diane','Edgar','Fiona','Gilbert','Henrietta','Ian','Jenny','Kristoff','Luisa'];
+  names.forEach((n,i)=>cls.deskNames[i]=n);
+  for(let i=0;i<names.length;i++) cls.att.AM[i] = 'P';
+  cls.submitted.AM = true;
+})();
+
+// ---- Grade 6 Mabini (teacher3, Ms. Villanueva) — 15 named students ----
+(function(){
+  const cls = S.classes[2];
+  const names = ['Kurt','Sunshine','Ronnel','Agnes','Bryan','Cherry','Dexter','Estrella','Fernan','Grace','Harold','Imee','Julius','Katrina','Leon'];
+  names.forEach((n,i)=>cls.deskNames[i]=n);
+  for(let i=0;i<names.length;i++) cls.att.AM[i] = 'P';
+  cls.submitted.AM = true;
+})();
+
+// ---- Grade 6 Camia (teacher4, Mr. Ramos) — 15 named students ----
+(function(){
+  const cls = S.classes[3];
+  const names = ['Kyla','Paolo','Jerica','Angelo','Bianca','Cardo','Dahlia','Emman','Flora','Gerald','Hazel','Igme','Jovie','Kiel','Lourdes'];
+  names.forEach((n,i)=>cls.deskNames[i]=n);
+  for(let i=0;i<names.length;i++) cls.att.AM[i] = 'P';
+  cls.submitted.AM = true;
+})();
+const $ = id => document.getElementById(id);
+const fmt = m => { m = Math.max(0, Math.round(m)); const h = Math.floor(m/60), mm = m%60; return h + 'h ' + String(mm).padStart(2,'0') + 'm'; };
+function displayName(u){ const c = S.classes.find(x=>x.teacherKey===u); return c ? c.teacherName : S.names[u]; }
+function kid(){ return S.kids[S.user==='student' ? S.studentKidIndex : S.activeKid]; }
+function myClasses(){ return S.classes.filter(c=>c.teacherKey===S.user); }
+function myClass(){
+  const list = myClasses();
+  if(!list.length) return S.classes[0];
+  if(S.activeClassIdx==null || S.classes[S.activeClassIdx]==null || S.classes[S.activeClassIdx].teacherKey!==S.user){
+    S.activeClassIdx = S.classes.indexOf(list[0]);
+  }
+  return S.classes[S.activeClassIdx];
+}
+function switchClass(i){ S.activeClassIdx = i; render(); }
+function classSwitcher(){
+  const list = myClasses();
+  if(list.length<2) return '';
+  return `<div class="seg" role="group" aria-label="Class section" style="margin-bottom:12px">${list.map(c=>{
+    const i = S.classes.indexOf(c);
+    return `<button aria-pressed="${i===S.activeClassIdx}" onclick="switchClass(${i})">${esc(c.name)}</button>`;
+  }).join('')}</div>`;
+}
+function myOwnClass(){ return S.classes.find(c=>c.teacherKey===S.user); }
+function openClassPicker(){ S.modal='classPicker'; render(); }
+function pickSection(i){ S.viewSection = i; S.modal=null; render(); }
+function classPickerModal(){
+  const mine = S.classes.findIndex(c=>c.teacherKey===S.user);
+  const own = S.classes[mine];
+  const others = S.classes.map((c,i)=>({c,i})).filter(x=>x.i!==mine);
+  const stat = c => `AM ${c.submitted.AM?'✓':'—'} · PM ${c.submitted.PM?'✓':'—'}`;
+  const cutBadge = c => { const n = c.cutReports.length; return n ? ` · <b style="color:#8A3FBF">${n} cut class</b>` : ''; };
+  return `<h2>Class sections</h2>
+  <p class="sub">See attendance. In another section, report a student who cut your class.</p>
+  <p class="lab" style="margin-top:14px">YOUR ADVISORY SECTION</p>
+  <button class="opt" onclick="pickSection(${mine})"><b>${esc(own.name)}</b><span>You are the class advisor · ${stat(own)}</span></button>
+  <p class="lab" style="margin-top:16px">OTHER SECTIONS</p>
+  ${others.map(x=>`<button class="opt" onclick="pickSection(${x.i})"><b>${esc(x.c.name)}</b><span>Class advisor: ${esc(x.c.teacherName)} · ${stat(x.c)}${cutBadge(x.c)}</span></button>`).join('')}
+  <button class="btn alt block" style="margin-top:14px" onclick="closeModal()">Close</button>`;
+}
+function classSectionList(){
+  const mine = S.classes.findIndex(c=>c.teacherKey===S.user);
+  const own = S.classes[mine];
+  const others = S.classes.map((c,i)=>({c,i})).filter(x=>x.i!==mine);
+  const stat = c => `AM ${c.submitted.AM?'✓':'—'} · PM ${c.submitted.PM?'✓':'—'}`;
+  const cutBadge = c => { const n = c.cutReports.length; return n ? ` · <b style="color:#8A3FBF">${n} cut class</b>` : ''; };
+  return `<div class="card"><h2>Class Section</h2><p class="sub">See any section's attendance. If a student from another class is missing from yours, report it here.</p></div>
+  <p class="lab" style="margin:14px 2px 4px">YOUR ADVISORY SECTION</p>
+  <button class="opt" onclick="pickSection(${mine})"><b>${esc(own.name)}</b><span>You are the class advisor · ${stat(own)}</span></button>
+  <p class="lab" style="margin:16px 2px 4px">OTHER SECTIONS</p>
+  ${others.map(x=>`<button class="opt" onclick="pickSection(${x.i})"><b>${esc(x.c.name)}</b><span>Class advisor: ${esc(x.c.teacherName)} · ${stat(x.c)}${cutBadge(x.c)}</span></button>`).join('')}`;
+}
+function classSectionView(){
+  const mine = S.classes.findIndex(c=>c.teacherKey===S.user);
+  if(S.viewSection==null) return classSectionList();
+  const cls = S.classes[S.viewSection];
+  if(!cls) return '';
+  const isMine = S.viewSection===mine;
+  const myOwn = S.classes[mine];
+  const arr = cls.att[cls.session];
+  const c = k=>arr.filter(x=>x===k).length, un = arr.filter(x=>x===null).length;
+  const cutCount = {AM: cls.att.AM.filter(x=>x==='C').length, PM: cls.att.PM.filter(x=>x==='C').length};
+  const label = {P:'Present',A:'Absent',L:'Late',E:'Excused',C:'Cut'};
+  const desks = arr.map((v,i)=>{
+    const nm = cls.deskNames[i]?esc(cls.deskNames[i]):(i+1);
+    const tapAttr = isMine ? `onclick="setDesk(${i})"` : `onclick="openCutReport(${S.viewSection},${i})"`;
+    return `<button class="desk ${v||''}" ${tapAttr} aria-label="Desk ${i+1}${cls.deskNames[i]?', '+cls.deskNames[i]:''}: ${v?label[v]:'not marked'}">${nm}<small>${v?label[v]:'·'}</small></button>`;
+  }).join('');
+  const cutBox = cls.cutReports.length ? `<div class="card" style="background:#F3E6FB;border:1px solid #D3B3EF"><h2 style="color:#8A3FBF;font-size:17px">Cut class (${cls.cutReports.length})</h2>
+    <ul style="margin:6px 0 0;padding-left:18px">${cls.cutReports.map(r=>`<li style="margin-bottom:4px">${esc(r.student)} · desk ${r.desk} · ${esc(r.subject)}, ${esc(r.time)} · reported by ${esc(r.reporterName)}</li>`).join('')}</ul></div>` : '';
+  return `<button class="back" onclick="S.viewSection=null;render()">‹ All sections</button>
+  <div class="card"><div class="row"><div><h2>${esc(cls.name)}</h2><p class="sub" style="margin:0">Class advisor: ${esc(cls.teacherName)}${isMine?' · you are the class advisor':' · you are a subject teacher here'}</p></div></div></div>
+  <div class="card">
+    <div class="seg" role="group" aria-label="Session" style="margin-bottom:0"><button aria-pressed="${cls.session==='AM'}" onclick="S.classes[${S.viewSection}].session='AM';render()">Morning ✓${cutCount.AM?' · '+cutCount.AM+' cut':''}</button><button aria-pressed="${cls.session==='PM'}" onclick="S.classes[${S.viewSection}].session='PM';render()">Afternoon ${cls.submitted.PM?'✓':''}${cutCount.PM?' · '+cutCount.PM+' cut':''}</button></div>
+    ${!isMine?`<p class="hint" style="margin-top:10px">Your class here: <b>${esc(myOwn.subject)}</b> · ${esc(myOwn.time)}</p>`:''}
+  </div>
+  ${cutBox}
+  <div class="card"><div class="grid" style="margin-top:0">${desks}</div></div>
+  <div class="counts"><div style="background:var(--okbg);color:var(--ok)"><b>${c('P')}</b>Present</div><div style="background:var(--badbg);color:var(--bad)"><b>${c('A')}</b>Absent</div><div style="background:var(--latebg);color:var(--late)"><b>${c('L')}</b>Late</div><div style="background:#F3E6FB;color:#8A3FBF"><b>${c('C')}</b>Cut class</div><div style="background:#E6EFFD;color:#3B6FD6"><b>${c('E')}</b>Excused</div></div>
+  ${!isMine?`<p class="hint" style="margin:4px 2px 0">Is a student missing from your class? Tap their name to report cutting class to the class advisor.</p>`:''}`;
+}
+function openCutReport(classIdx, deskIdx){
+  const myOwn = myOwnClass();
+  S.cutClassIdx = classIdx; S.cutDesk = deskIdx; S.cutSubject = myOwn.subject; S.cutTime = myOwn.time; S.cutNote='';
+  S.modal = 'cutReport'; render();
+}
+function saveCutReport(){
+  const cls = S.classes[S.cutClassIdx]; const i = S.cutDesk;
+  const note = (S.cutNote||'').trim();
+  if(!note){ say('Add a note', 'A short note is needed before sending this to the class advisor.'); return; }
+  cls.att[cls.session][i] = 'C';
+  cls.cutReports.unshift({student: cls.deskNames[i]||('Desk '+(i+1)), desk: i+1, subject: S.cutSubject, time: S.cutTime, reporterName: displayName(S.user), note});
+  closeModal();
+  say('Sent to class advisor', cls.deskNames[i]+' was reported to '+cls.teacherName+'. The parent is told only when the class advisor sends it.');
+}
+function excuseLogView(){
+  const cls = myOwnClass();
+  const tab = S.excuseTab || 'week';
+  const max = tab==='week' ? 7 : tab==='month' ? 31 : 90;
+  const entries = cls.excuseLog.filter(e=>e.daysAgo<=max);
+  let lastDay = null, groups = [];
+  entries.forEach(e=>{ if(e.dayLabel!==lastDay){ groups.push({dayLabel:e.dayLabel, items:[]}); lastDay=e.dayLabel; } groups[groups.length-1].items.push(e); });
+  return `<button class="back" onclick="S.showExcuseLog=false;render()">‹ Back to attendance</button>
+  <div class="card"><h2>Excuse log</h2><p class="sub">Your advisory section. Only you, the class advisor, can read these reasons.</p>
+  <div class="seg" role="group" aria-label="Period" style="margin-top:10px"><button aria-pressed="${tab==='week'}" onclick="S.excuseTab='week';render()">This week</button><button aria-pressed="${tab==='month'}" onclick="S.excuseTab='month';render()">This month</button><button aria-pressed="${tab==='quarter'}" onclick="S.excuseTab='quarter';render()">Quarter</button></div></div>
+  <p class="hint" style="margin:10px 2px">${entries.length} entr${entries.length===1?'y':'ies'} · newest first</p>
+  ${groups.map(g=>`<p class="lab" style="margin:14px 2px 4px">${g.dayLabel.toUpperCase()}</p>${g.items.map(e=>`<div class="card"><div class="row"><b>${esc(e.student)}</b><span class="chip" style="background:#E6EFFD;color:#3B6FD6">${esc(e.category)}</span></div><p class="sub" style="margin:2px 0 8px">${esc(cls.name)} · desk ${e.desk} · ${esc(e.session)}</p><p style="margin:0">${esc(e.note)}</p><p class="hint" style="margin-top:8px">Written by ${esc(e.writtenBy)}</p></div>`).join('')}`).join('')}
+  ${!entries.length?'<p class="sub" style="margin:0 2px">No entries in this period.</p>':''}`;
+}
+function openExcuseLog(){ S.showExcuseLog=true; S.excuseTab='week'; render(); }
+function kidClass(k){ k = k || kid(); return k.classId!=null ? S.classes[k.classId] : null; }
+function classKids(idx){ return S.kids.filter(k=>k.classId===idx && k.desk!=null); }
+function inOnlineClass(){ const kc = kidClass(); return !!(kc && kc.classActive); }
+const isLocked = () => !!kid().active || inOnlineClass();
+const effLocked = () => isLocked() || kid().vaultActive;
+const inVault = () => kid().phone.filter(a=>a.v);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function say(title, body){
+  S.toast = {title, body}; render();
+  clearTimeout(say.t); say.t = setTimeout(()=>{S.toast=null; render();}, 4500);
+}
+
+/* ---------- Mode logic ---------- */
+function hoursBetween(start, end){
+  const [sh,sm] = start.split(':').map(Number), [eh,em] = end.split(':').map(Number);
+  let mins = (eh*60+em) - (sh*60+sm);
+  if(mins <= 0) mins += 24*60;
+  return mins/60;
+}
+function startMode(type){
+  if(isViewer()){ say('View only', S.names.parent+' needs to make this change.'); return; }
+  if(!settingsOpen()){ askSettingsPin(); return; }
+  const sc = kid().schedule;
+  const hrs = type==='study' ? hoursBetween(sc.studyStart, sc.studyEnd) : hoursBetween(sc.bedStart, sc.bedEnd);
+  kid().active = {type, hrs, elapsed:0};
+  render();
+}
+function skip(m){ if(kid().active){ kid().active.elapsed = Math.min(kid().active.hrs*60, kid().active.elapsed+m); if(kid().active.elapsed>=kid().active.hrs*60){ kid().active=null; say('Lock finished','The Vault opened on its own.'); return;} render(); } }
+function askUnlock(){ if(isViewer()){ say('View only', S.names.parent+' needs to make this change.'); return; } S.modal = 'unlock'; S.pinErr=''; S.pendingRemove=null; S.pinFor=null; render(); }
+function closeModal(){ clearInterval(closeModal.t); S.modal=null; S.adProg=0; S.pendingRemove=null; S.pinFor=null; render(); }
+function pay(){
+  kid().spent += 20; kid().unlocks += 1; kid().active = null; S.modal = null;
+  render();
+  say('Early unlock #' + kid().unlocks + ' — $20.00 charged', 'Total spent on early unlocks: $' + kid().spent.toFixed(2));
+}
+function watchAd(){
+  S.modal = 'ad'; S.adProg = 0; render();
+  clearInterval(closeModal.t);
+  closeModal.t = setInterval(()=>{
+    S.adProg += 100/6;                       // demo: 30 min plays in ~6 seconds
+    if(S.adProg >= 100){ clearInterval(closeModal.t); kid().active=null; S.modal=null; S.adProg=0; render(); say('Ad finished','Vault unlocked after 30 minutes of ads.'); }
+    else render();
+  }, 1000);
+}
+function settingsOpen(){ return S.unlockUntil > Date.now(); }
+function unlockSettings(){ S.unlockUntil = Date.now()+900000; clearTimeout(unlockSettings.t); unlockSettings.t = setTimeout(()=>{ S.unlockUntil=0; render(); }, 900000); }
+function lockSettings(){ S.unlockUntil=0; clearTimeout(unlockSettings.t); render(); }
+function askSettingsPin(){ S.pinFor='settings'; S.modal='pin'; S.pinErr=''; S.pendingRemove=null; render(); }
+function askLoginPin(role){ S.pinFor='login'; S.loginRole=role||'parent'; S.modal='pin'; S.pinErr=''; S.pendingRemove=null; render(); }
+function setTab(k){ if(S.user==='parent' && S.tab==='home' && k!=='home') lockSettings(); S.showExcuseLog=false; if(k==='classSection') S.viewSection=null; S.tab=k; render(); }
+function checkPin(){
+  const v = $('pinIn').value;
+  const f = S.pinFor;
+  const need = f==='admin' ? ADMIN_PIN : PIN;
+  if(Date.now() < S.pinLockUntil){ S.pinErr = 'Too many wrong tries. Try again in ' + Math.ceil((S.pinLockUntil-Date.now())/1000) + ' seconds.'; render(); return; }
+  if(v !== need){
+    S.pinFails++;
+    if(S.pinFails >= 3){ S.pinFails = 0; S.pinLockUntil = Date.now()+30000; S.pinErr = 'Too many wrong tries. Locked for 30 seconds.'; }
+    else S.pinErr = 'Wrong PIN. Try again.' + (need==='1234'||need==='9999' ? ' (demo PIN: '+need+')' : '');
+    render(); return;
+  }
+  S.pinFails = 0; S.pinFor = null;
+  if(f==='login'){ S.modal=null; unlockSettings(); signIn(S.loginRole||'parent'); return; }
+  if(f==='settings'){ S.modal=null; unlockSettings(); render(); say('Settings unlocked','You can change protected settings for 2 minutes.'); return; }
+  if(f==='admin'){
+    const action = S.adminAction; S.adminAction=null; S.modal=null;
+    if(action==='clear') doSendClear();
+    else if(action==='announce') doPostAnnouncement();
+    render(); return;
+  }
+  if(S.pendingRemove){ const n = S.pendingRemove; const ap = kid().phone.find(a=>a.n===n); if(ap) ap.v=false; S.modal=null; S.pendingRemove=null; render(); say('Taken out of the vault', n + ' is no longer protected.'); return; }
+  if(S.pendingRemoveMe){ const n = S.pendingRemoveMe; const ap = S.me.apps.find(a=>a.n===n); if(ap) ap.v=false; S.modal=null; S.pendingRemoveMe=null; render(); say('Taken out of your vault', n + ' is no longer protected.'); return; }
+  kid().active = null; S.modal = null; render(); say('Vault unlocked','Unlocked with PIN after the hard lock window.');
+}
+function askAdminPin(action){ S.pinFor='admin'; S.adminAction=action; S.modal='pin'; S.pinErr=''; render(); }
+function removeApp(n){ S.pendingRemove = n; S.modal='pin'; S.pinErr=''; render(); }
+
+/* ---------- Home ---------- */
+function ring(){
+  const a = kid().active, R = 84, C = 2*Math.PI*R;
+  let frac = 0, big = 'Open', label = 'No lock running';
+  if(inOnlineClass() && !a){ big='Class'; label='Locked by online class'; frac=1; }
+  if(a){ const tot=a.hrs*60; frac = a.elapsed/tot; big = fmt(tot-a.elapsed); label = (a.type==='study'?'Study Mode':'Bedtime') + ' · hard lock'; }
+  const doneLen = C*frac;
+  return `<div class="dial" role="img" aria-label="${esc(label)}">
+    <svg viewBox="0 0 200 200">
+      <circle cx="100" cy="100" r="${R}" fill="none" stroke="var(--line)" stroke-width="14"/>
+      ${a?`<circle cx="100" cy="100" r="${R}" fill="none" stroke="var(--lock)" stroke-width="14" stroke-linecap="round" stroke-dasharray="${doneLen} ${C}" transform="rotate(-90 100 100)"/>`:inOnlineClass()?`<circle cx="100" cy="100" r="${R}" fill="none" stroke="var(--brand)" stroke-width="14" stroke-linecap="round" stroke-dasharray="${doneLen} ${C}" transform="rotate(-90 100 100)"/>`:''}
+      <text x="100" y="98" text-anchor="middle" font-family="var(--head)" font-weight="800" font-size="${a?30:34}" fill="var(--ink)">${big}</text>
+      <text x="100" y="122" text-anchor="middle" font-family="var(--body)" font-size="12" fill="var(--muted)">${a?'left':(inOnlineClass()?'':'all apps usable')}</text>
+    </svg>
+    <div class="state">${label}</div>
+  </div>`;
+}
+function kidSwitcher(){
+  if(S.user!=='parent' && S.user!=='parent2') return '';
+  const pills = S.kids.map((k,i)=>`<button class="kidpill${i===S.activeKid?' on':''}" onclick="S.activeKid=${i};render()">${esc(k.name)}</button>`).join('');
+  return `<div class="kidrow">${pills}${isViewer()?'':'<button class="kidpill add" onclick="openAddKid()">+ Add child</button>'}</div>`;
+}
+function openAddKid(){ if(isViewer()){ say('View only', S.names.parent+' needs to make this change.'); return; } S.newKidForm={age:'6-12'}; S.modal='addkid'; render(); }
+function submitAddKid(){
+  const name = (S.newKidForm.name||'').trim();
+  if(!name){ say('Enter a name', "Type your child's first name to continue."); return; }
+  S.kids.push(newKid(name, S.newKidForm.age||'6-12', {}));
+  S.activeKid = S.kids.length-1; S.modal=null;
+  say('Child added', name+' now has their own Vault, Study Mode, Bedtime and filter — set up the same way as your other children.');
+  render();
+}
+function timeAgo(ts){
+  const m = Math.max(1, Math.round((Date.now()-ts)/60000));
+  if(m<60) return m+'m ago';
+  const h = Math.round(m/60); if(h<24) return h+'h ago';
+  return Math.round(h/24)+'d ago';
+}
+function post(icon, title, body, at, kind){
+  const sos = kind==='sos';
+  return `<div class="post ${sos?'sos':'reg'}"><div class="post-head"><span class="post-ico" style="background:${sos?'#B3261E':'#2563EB'}">${icon}</span><div class="post-who"><b>${esc(title)}</b><span>${timeAgo(at)}</span></div></div><p class="post-body">${esc(body)}</p></div>`;
+}
+function setFeedTab(t){ S.feedTab=t; if(t==='announce') S.newAnnouncement=false; render(); }
+function postAnnouncement(){
+  const t = (S.announceDraft||'').trim();
+  if(!t){ say('Write something first', 'Type a short announcement for parents.'); return; }
+  if(isAdmin()){ doPostAnnouncement(); render(); return; }
+  askAdminPin('announce');
+}
+function doPostAnnouncement(){
+  const t = (S.announceDraft||'').trim();
+  S.announcements.unshift({t:'From '+displayName(S.user), b:t, at:Date.now(), kind:'post'});
+  S.newAnnouncement = true; S.announceDraft='';
+  say('Posted to all parents', 'Every parent will see this in School announcements.');
+}
+function stat(big, label){ return `<div class="stat"><b>${big}</b><span>${label}</span></div>`; }
+function weeklyDigest(){
+  const k = kid();
+  const tiles = [
+    stat(k.unlocks, 'Early unlocks'),
+    stat(inVault().length, 'Apps protected')
+  ];
+  if(k.classId!=null){
+    const cls = kidClass(k);
+    const present = cls.att.AM.filter((v,i)=>v==='P'||v==='L').length ? '4/5' : '—';
+    tiles.push(stat(present, 'Days present (sample)'));
+    tiles.push(stat(cls.graded?cls.graded.s+'/'+cls.graded.t:'—', 'Last quiz score'));
+  }
+  return `<p class="sub" style="margin:0 0 8px">A quick summary for ${esc(k.name)}. Full history lives in Alerts.</p>
+    <div class="statgrid">${tiles.join('')}</div>
+    <p class="hint" style="margin-top:8px">Sample numbers for this prototype — a real build would track these over time.</p>`;
+}
+function feedCard(){
+  const ann = S.announcements.slice(0,8);
+  const annRows = ann.length ? ann.map(a=>post(a.kind==='sos'?'🚨':'📣', a.t, a.b, a.at, a.kind)).join('')
+    : '<p class="sub" style="margin:0">No announcements from the school yet.</p>';
+  const onDigest = S.feedTab!=='announce';
+  return `<div class="card feedcard">
+    <div class="seg sm" role="group" aria-label="Feed">
+      <button aria-pressed="${onDigest}" onclick="setFeedTab('news')">This week</button>
+      <button aria-pressed="${!onDigest}" class="${S.newAnnouncement?'hasnew':''}" onclick="setFeedTab('announce')">School announcements${S.newAnnouncement?' 🔵':''}</button>
+    </div>
+    <div class="feedlist">${onDigest?weeklyDigest():annRows}</div></div>`;
+}
+function setSchedule(field, value){
+  if(isViewer()){ say('View only', S.names.parent+' needs to make this change.'); render(); return; }
+  kid().schedule[field] = value; render();
+}
+const TIMEZONES = ['Asia/Manila (GMT+8)','Asia/Hong_Kong (GMT+8)','Asia/Singapore (GMT+8)','Asia/Tokyo (GMT+9)','Asia/Kolkata (GMT+5:30)','Asia/Dubai (GMT+4)','Asia/Riyadh (GMT+3)','Africa/Lagos (GMT+1)','Africa/Nairobi (GMT+3)','Africa/Cairo (GMT+2)','Europe/London (GMT+0)','Europe/Paris (GMT+1)','Europe/Berlin (GMT+1)','America/New_York (GMT-5)','America/Chicago (GMT-6)','America/Los_Angeles (GMT-8)','America/Sao_Paulo (GMT-3)','America/Toronto (GMT-5)','Australia/Sydney (GMT+11)'];
+function setTimezone(value){
+  if(isViewer()){ say('View only', S.names.parent+' needs to make this change.'); render(); return; }
+  kid().timezone = value; render();
+  say('Time zone updated', 'Study and Bedtime times now use '+value+' — '+kid().name+"'s time zone, not wherever you are.");
+}
+function homeView(){
+  const viewer = isViewer();
+  const open = settingsOpen();
+  const gate = viewer
+    ? `<div class="card" style="background:var(--bg)"><p class="sub" style="margin:0">👀 You're viewing as ${esc(S.names.parent2)}. Only ${esc(S.names.parent)} can change Study Mode, Bedtime or the Vault.</p></div>`
+    : open
+    ? `<div class="card" style="background:var(--okbg);border-color:var(--ok)"><div class="row"><div><h2 style="font-size:15px">${tr("Settings unlocked")}</h2><p class="sub" style="margin:0">Locks again after 15 minutes or when you leave this screen.</p></div><button class="btn alt" onclick="lockSettings()">${tr("Lock now")}</button></div></div>`
+    : `<div class="card" style="background:var(--latebg)"><div class="row"><div><h2 style="font-size:15px">${tr("Study and Bedtime are locked")}</h2><p class="sub" style="margin:0">Enter your PIN to change them.</p></div><button class="btn lock" onclick="askSettingsPin()">${tr("Enter PIN")}</button></div></div>`;
+  const editable = open && !viewer;
+  const a = kid().active;
+  const locked = isLocked();
+  const vaultCard = vaultCardView(effLocked(), viewer);
+  const sc = kid().schedule;
+  return `
+  ${kidSwitcher()}
+  ${sosBanner()}
+  ${inOnlineClass()?`<div class="banner">${esc(kidClass().name)} is in an online class right now. The Vault is on across every student device.</div>`:''}
+  ${locked ? `<div class="card">${ring()}
+    ${a?`<button class="btn lock block" ${viewer?'disabled':''} onclick="askUnlock()">Unlock early…</button>
+    <p class="hint" style="text-align:center;margin:8px 0 0">Demo clock: <button class="pill" onclick="skip(60)">+1 hour</button> <button class="pill" onclick="skip(30)">+30 min</button></p>`:''}
+  </div>` : feedCard()}
+${vaultCard}
+  ${gate}
+  <div class="card"${editable?'':' inert style="opacity:.55"'}><h2>${tr("Study Mode")}</h2>
+    <p class="sub">Blocks every Vault app for the exact window you set.</p>
+    <label class="lab" style="margin-top:8px">${esc(kid().name)}'s time zone<select class="field" ${editable?'':'disabled'} onchange="setTimezone(this.value)">${TIMEZONES.map(tz=>`<option value="${tz}" ${kid().timezone===tz?'selected':''}>${tz}</option>`).join('')}</select></label>
+    <p class="hint" style="margin:4px 0 0">🌏 Times always use ${esc(kid().name)}'s time zone, even if you're setting this from another country.</p>
+    <div class="timerow" style="margin-top:10px"><label class="timelab">Start<input type="time" class="timein" value="${sc.studyStart}" ${editable?'':'disabled'} onchange="setSchedule('studyStart',this.value)"></label>
+      <label class="timelab">End<input type="time" class="timein" value="${sc.studyEnd}" ${editable?'':'disabled'} onchange="setSchedule('studyEnd',this.value)"></label></div>
+    <label class="swlabel" style="margin-top:10px"><input type="checkbox" ${sc.studyOn?'checked':''} ${editable?'':'disabled'} onchange="setSchedule('studyOn',this.checked)"> Start automatically every day</label>
+    <button class="btn block" style="margin-top:10px" ${locked||viewer?'disabled':''} onclick="startMode('study')">Start now</button>
+    <div class="note">Hard lock from ${fmtTime(sc.studyStart)} to ${fmtTime(sc.studyEnd)}, ${kid().timezone}. Unlocking early means watching a 30-minute ad or paying $20.00.</div></div>
+  <div class="card"${editable?'':' inert style="opacity:.55"'}><h2>${tr("Bedtime Mode")}</h2>
+    <p class="sub">Locks the Vault overnight, for the exact window you set.</p>
+    <p class="hint" style="margin:8px 0 0">🌏 Same time zone as Study Mode: ${esc(kid().timezone)}.</p>
+    <div class="timerow" style="margin-top:10px"><label class="timelab">Start<input type="time" class="timein" value="${sc.bedStart}" ${editable?'':'disabled'} onchange="setSchedule('bedStart',this.value)"></label>
+      <label class="timelab">End<input type="time" class="timein" value="${sc.bedEnd}" ${editable?'':'disabled'} onchange="setSchedule('bedEnd',this.value)"></label></div>
+    <label class="swlabel" style="margin-top:10px"><input type="checkbox" ${sc.bedOn?'checked':''} ${editable?'':'disabled'} onchange="setSchedule('bedOn',this.checked)"> Start automatically every night</label>
+    <button class="btn block" style="margin-top:10px" ${locked||viewer?'disabled':''} onclick="startMode('bed')">Start now</button>
+    <div class="note" style="margin-top:10px">Think Twice: hard lock from ${fmtTime(sc.bedStart)} to ${fmtTime(sc.bedEnd)}, ${kid().timezone}. Unlocking early also means watching a 30-minute ad or paying $20.00.</div>
+    <details style="margin-top:10px"><summary>Sleep guidelines (AAP / AASM)</summary>
+      <ul style="padding-left:18px"><li>${kid().ageGroup==='6-12'?'<b>':''}Ages 6–12: 9 to 12 hours per night${kid().ageGroup==='6-12'?' (your child)</b>':''}</li><li>${kid().ageGroup==='13-18'?'<b>':''}Ages 13–18: 8 to 10 hours per night${kid().ageGroup==='13-18'?' (your child)</b>':''}</li></ul>
+      <p>Too little sleep is linked to weaker focus and memory, mood and behavior problems, and a weaker immune system.</p></details></div>
+  <div class="card"><div class="spent"><div><h2>${tr("Early-unlock spending")}</h2><p class="sub" style="margin:0">${kid().unlocks} early unlock${kid().unlocks===1?'':'s'} so far, for ${esc(kid().name)}</p></div><b>$${kid().spent.toFixed(2)}</b></div></div>
+  ${S.user==='parent'?yourDataCard():''}`;
+}
+function yourDataCard(){
+  return `<div class="card"><h2>${tr("Your data")}</h2><p class="sub">Download a copy of your family's data, or permanently delete your account.</p>
+    <button class="btn alt block" style="margin-top:10px" onclick="downloadFamilyData()">⬇ Download my family's data</button>
+    <button class="btn block" style="margin-top:8px;background:var(--bad)" onclick="openDeleteAccount()">Delete my account</button></div>`;
+}
+function downloadFamilyData(){
+  const data = {
+    exportedAt: new Date().toISOString(),
+    parent: {name: S.names.parent, email: S.parentEmail},
+    coParent: S.names.parent2,
+    children: S.kids.map(k=>({
+      name: k.name, ageGroup: k.ageGroup, timezone: k.timezone, className: k.classId!=null?S.classes[k.classId].name:null,
+      vaultApps: k.phone.filter(a=>a.v).map(a=>a.n), filterLevel: k.filterLevel,
+      studySchedule: {start: k.schedule.studyStart, end: k.schedule.studyEnd, auto: k.schedule.studyOn},
+      bedtimeSchedule: {start: k.schedule.bedStart, end: k.schedule.bedEnd, auto: k.schedule.bedOn},
+      earlyUnlocks: k.unlocks, earlyUnlockSpend: k.spent
+    })),
+    schoolAlerts: S.inbox.map(m=>({title:m.t, body:m.b})),
+    announcements: S.announcements.map(a=>({title:a.t, body:a.b}))
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'lock-and-connect-family-data.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 2000);
+  say('Download started', "Your family's data is being saved as a .json file.");
+}
+function openDeleteAccount(){ S.deleteConfirm=''; S.deletePin=''; S.modal='delete'; S.pinErr=''; render(); }
+function confirmDeleteAccount(){
+  if((S.deleteConfirm||'').trim().toUpperCase() !== 'DELETE'){ S.pinErr = 'Type DELETE in capital letters to confirm.'; render(); return; }
+  if(S.deletePin !== PIN){ S.pinErr = 'Wrong PIN.' + (PIN==='1234'?' (demo PIN: 1234)':''); render(); return; }
+  S.modal = null;
+  document.body.innerHTML = `<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#14213D;color:#fff;font-family:Figtree,sans-serif;text-align:center;padding:24px"><div><div style="font-size:40px;margin-bottom:12px">✅</div><h1 style="font-family:'Bricolage Grotesque',sans-serif;font-size:24px;margin-bottom:10px">Account deleted</h1><p style="color:#B9C2D6;font-size:15px;max-width:320px;margin:0 auto">Your family's data has been removed. Reloading a fresh demo in a moment…</p></div></div>`;
+  setTimeout(()=>location.reload(), 2200);
+}
+function fmtTime(t){
+  const [h,m] = t.split(':').map(Number);
+  const h12 = ((h+11)%12)+1;
+  return h12+':'+String(m).padStart(2,'0')+' '+(h<12?'AM':'PM');
+}
+const T = {
+  en: {
+    tagline: 'Focus at school. Rest at night. Play in between.',
+    heroSub: "Parent/Guardian locks distracting apps, teachers run attendance and online classes, and students stay on task.",
+    createAccount: 'Create account', signIn: 'Sign in',
+    forParents: 'For parents/guardians', forParentsBody: 'Lock apps with a PIN, set study and bedtime limits, get school alerts.',
+    forTeachers: 'For teachers', forTeachersBody: 'Tap a desk to mark attendance, publish quizzes, start distraction-free classes.',
+    forStudents: 'For students', forStudentsBody: "See what's locked, take quizzes, ask the teacher questions."
+  },
+  fil: {
+    tagline: 'Todo sa school. Tulog sa gabi. Laro sa pagitan.',
+    heroSub: 'Ino-lock ng Magulang/Guardian ang mga distracting app, kinukuha ng guro ang attendance at online classes, at nananatiling nakatuon ang estudyante.',
+    createAccount: 'Gumawa ng account', signIn: 'Mag-sign in',
+    forParents: 'Para sa magulang/guardian', forParentsBody: 'I-lock ang mga app gamit ang PIN, magtakda ng study at bedtime limits, makatanggap ng school alerts.',
+    forTeachers: 'Para sa guro', forTeachersBody: 'Tapikin ang upuan para markahan ang attendance, mag-publish ng quiz, simulan ang distraction-free na klase.',
+    forStudents: 'Para sa estudyante', forStudentsBody: 'Makita kung ano ang naka-lock, sagutan ang quiz, magtanong sa guro.'
+  }
+};
+function tr(s){ return S.lang==='fil' ? (STRINGS_FIL[s]||s) : s; }
+const STRINGS_FIL = {
+  'The Vault':'Ang Vault', 'School':'Paaralan', 'Content filter is locked':'Naka-lock ang filter',
+  'Settings unlocked':'Naka-unlock ang settings', 'Lock now':'I-lock ngayon', 'Enter PIN':'Ilagay ang PIN',
+  'Study and Bedtime are locked':'Naka-lock ang Study at Bedtime', 'Study Mode':'Study Mode', 'Bedtime Mode':'Bedtime Mode',
+  'Early-unlock spending':'Gastos sa maagang pag-unlock', 'Your data':'Iyong datos',
+  'Unlock early?':'I-unlock nang maaga?', 'Keep it locked':'Panatilihing naka-lock',
+  'Send an emergency alert':'Magpadala ng emergency alert', 'This is a drill':'Ito ay drill',
+  'Hold to send alert':'Pindutin nang matagal para magpadala', 'Cancel':'Kanselahin', 'Confirm':'Kumpirmahin',
+  'Save':'I-save', 'Done':'Tapos na', 'Close':'Isara', 'Add child':'Magdagdag ng anak',
+  'Add another child':'Magdagdag ng isa pang anak', 'Connect':'Ikonekta', 'Reply':'Sumagot', 'Send':'Ipadala',
+  'Delete permanently':'Burahin nang permanente', 'Delete all, start fresh':'Burahin lahat, magsimulang muli',
+  'Start a new school year?':'Magsimula ng bagong taon ng eskwela?', 'Delete your account?':'Burahin ang iyong account?',
+  'Video call':'Video call', 'End call':'Tapusin ang tawag', 'Close app':'Isara ang app',
+  'Privacy summary':'Buod ng privacy', 'Add reminder':'Magdagdag ng paalala', 'Add a reminder':'Magdagdag ng paalala',
+  'Save as a reminder':'I-save bilang paalala', 'Title':'Pamagat', 'Date':'Petsa', 'Time (optional)':'Oras (opsyonal)',
+  'Remove':'Alisin', 'Attendance':'Pagdalo', 'Quiz builder':'Gumawa ng Pagsusulit', 'Submissions':'Mga Sagot',
+  'Not connected to a class':'Hindi pa konektado sa klase', 'No quiz yet':'Wala pang pagsusulit',
+  'Submit answers':'Ipasa ang mga sagot', 'Present':'Pumasok', 'Absent':'Wala', 'Late':'Huli',
+  'Mark rest present':'Markahan ang natitira bilang pumasok', 'Edit names':'I-edit ang mga pangalan',
+  'Delete all (new school year)':'Burahin lahat (bagong taon)', 'Generate new code':'Gumawa ng bagong code',
+  'Morning':'Umaga', 'Afternoon':'Hapon', 'Online class':'Online na klase', 'Start class':'Simulan ang klase',
+  'End class':'Tapusin ang klase', 'Post a school announcement':'Mag-post ng paunawa sa paaralan',
+  'Post to all parents':'I-post sa lahat ng magulang', 'Emergency alerts':'Mga Alerto sa Emergency',
+  'Performance report requested':'Hiniling ang performance report', "My Vault":"Aking Vault",
+  'Apps on this phone':'Mga app sa telepong ito', 'Link code':'Link code',
+  'Content filter':'Filter ng Content', 'School alerts':"Mga Alerto ng Paaralan",
+  "School announcements":"Mga Paunawa ng Paaralan", 'Class chat':'Klase Chat',
+  'Not a real number':'', 'Sign out':'Mag-sign out', 'Sign in':'Mag-sign in',
+  'Delete my account':'Burahin ang aking account', 'Ask my parent to unlock':'Hilingin sa magulang na i-unlock',
+  'Request full performance report':'Humiling ng buong performance report',
+  "Waiting for teacher…":"Hinihintay ang guro…", 'Move out':'Ilabas',
+  'Connect to a class':'Kumonekta sa klase', 'Add question':'Magdagdag ng tanong',
+  'Publish quiz':'I-publish ang pagsusulit', 'Published':'Na-publish na',
+  'Submit & notify parents':'Ipasa at abisuhan ang magulang', 'Submitted':'Naipasa na',
+  'Saved · will sync':'Na-save · magsi-sync', 'Save (offline)':'I-save (offline)',
+  "Your classes":"Mga Klase Mo",
+  'Create your account':'Gumawa ng account', 'Who is signing up?':'Sino ang magpaparehistro?',
+  "I'm a parent/guardian":'Ako ay magulang/guardian', 'Set up the Vault for your child and get school alerts':'I-set up ang Vault para sa anak mo at makatanggap ng mga alerto ng paaralan',
+  "I'm a teacher":'Ako ay guro', 'Take attendance, build quizzes, run online classes':'Kumuha ng attendance, gumawa ng pagsusulit, magsagawa ng online na klase',
+  "I'm a student":'Ako ay estudyante', "You'll need a link code from your parent":'Kakailanganin mo ng link code mula sa iyong magulang',
+  'Reset your':'I-reset ang iyong', 'password':'password', 'PIN':'PIN',
+  'Send reset code':'Ipadala ang reset code', 'Enter the code':'Ilagay ang code',
+  'Create account':'Gumawa ng account', 'Sign in':'Mag-sign in',
+  'Off: apps inside can be used freely.':'Naka-off: puwedeng gamitin nang libre ang mga app sa loob.',
+  'Apps inside are protected.':'Protektado ang mga app sa loob.',
+  'Put an app inside to protect it.':'Ilagay ang isang app sa loob para protektahan ito.',
+  'Study, Bedtime or class lock is running, but the Vault is off, so apps inside are usable. Turn it back on to lock them again.':'Tumatakbo ang Study, Bedtime o class lock, pero naka-off ang Vault, kaya puwedeng gamitin ang mga app sa loob. Buksan itong muli para i-lock sila ulit.',
+  'Reminders':'Mga Paalala', 'Set a real date and time, like an ordinary reminder.':'Magtakda ng tunay na petsa at oras, tulad ng ordinaryong paalala.',
+  'No reminders yet.':'Wala pang paalala.', 'From your school':'Mula sa paaralan',
+  'Tap "Remind me" to save one — no retyping.':'I-tap ang "Remind me" para i-save, walang muling pagta-type.',
+  "Same idea as the Vault, just for your own phone. Apps inside are locked and can't be opened.":'Parehong ideya ng Vault, para sa sarili mong telepono. Naka-lock ang mga app sa loob at hindi puwedeng buksan.',
+  'Every app is in your vault.':'Nasa vault mo na ang lahat ng app.',
+  'Tap a desk to cycle Present → Absent → Late.':'I-tap ang upuan para lumipat sa Pumasok → Wala → Huli.',
+  'Class code — give this to parents so they can connect their child here.':'Class code — ibigay ito sa mga magulang para maikonekta ang kanilang anak dito.',
+  'Multiple choice: write the question, then mark the correct answer.':'Multiple choice: isulat ang tanong, tapos markahan ang tamang sagot.',
+  'No submissions yet. Sign in as the student to take the quiz.':'Wala pang sagot. Mag-sign in bilang estudyante para sagutan ang pagsusulit.',
+  'Every student, every teacher and every parent is alerted right away.':'Aabisuhan agad ang bawat estudyante, guro at magulang.',
+  'No emergency alerts yet.':'Wala pang emergency alert.', 'Type a message':'Mag-type ng mensahe',
+  'Active':'Aktibo', 'One tap sets everything. No menus to dig through.':'Isang tap lang, tapos na lahat. Walang menu na hahanapin.',
+  'Filtering is handled by a licensed content-filtering engine built into the app, the same category of technology used by other parental-control apps. It is not powered by Claude or any AI chat tool — it works automatically once you pick a level, with nothing left for you to configure.':'Ginagamit ng app ang isang lisensyadong content-filtering engine, kategoryang teknolohiya rin na ginagamit ng ibang parental-control app. Hindi ito pinapagana ng Claude o anumang AI chat tool — kusa itong gumagana sa sandaling pumili ka ng level, walang iba pang ise-set up.',
+  "You're viewing as":'Tumitingin ka bilang', 'Only':'Tanging', 'can change the content filter.':'ang puwedeng magbago ng content filter.',
+  'Locks again after 15 minutes or when you leave this screen.':'Magla-lock ulit pagkatapos ng 15 minuto o kapag umalis ka sa screen na ito.',
+  'Enter your PIN to change it.':'Ilagay ang PIN mo para baguhin ito.',
+  'is connected to':'ay konektado sa', 'desk':'upuan', 'This is how the teacher and this family stay linked.':'Ganito nananatiling magkakonekta ang guro at pamilyang ito.',
+  "isn't connected to a class yet.":'ay hindi pa konektado sa klase.', 'can connect a child to a class.':'ang puwedeng ikonekta ang anak sa klase.',
+  'Young child':'Batang bata', 'Best for ages 6–9':'Pinakamainam para sa edad 6–9',
+  'Only approved, kid-safe sites and a kids search engine':'Mga naaprubahang site lang na ligtas sa bata at search engine para sa bata',
+  'No social media, video sites, or messaging apps':'Walang social media, video sites, o messaging apps',
+  'No search results outside the approved list':'Walang search result sa labas ng naaprubahang listahan',
+  'Older child':'Mas nakatatandang bata', 'Best for ages 10–12':'Pinakamainam para sa edad 10–12',
+  'Adult, violent and gambling content blocked':'Naka-block ang adult, marahas, at gambling na content',
+  'Search is filtered with safe search forced on':'Naka-filter ang search, laging naka-on ang safe search',
+  'Social media and chat apps blocked':'Naka-block ang social media at chat apps',
+  'Teen':'Teenager', 'Best for ages 13–17':'Pinakamainam para sa edad 13–17',
+  'Explicit and adult content blocked':'Naka-block ang explicit at adult content',
+  'Search and most sites allowed':'Pinapayagan ang search at karamihan ng site',
+  'Social media allowed, activity is logged for parents':'Pinapayagan ang social media, naitatala ang aktibidad para sa magulang',
+  'No restriction':'Walang paghihigpit', 'Adult or supervised use only':'Para sa adult o may pagsubaybay lang',
+  'Nothing is blocked':'Walang naka-block',
+  "Not recommended while a child's account is active":"Hindi inirerekomenda habang aktibo ang account ng bata",
+  "'s performance":"na performance", 'A quick snapshot, plus a full report on request.':'Mabilis na buod, at buong report kapag hiniling.',
+  'Morning':'Umaga', 'Afternoon':'Hapon', 'Quiz':'Pagsusulit',
+  'absent':'wala', 'late':'huli', 'present':'pumasok', 'pending':'nakabinbin', 'held':'hawak', 'not taken':'hindi pa sinagutan',
+  "isn't connected to a class yet, so there's no attendance or quiz data to show. Vault, Study Mode, Bedtime and the content filter still work fully. Connect them with a class code from the Vault screen.":"ay hindi pa konektado sa klase, kaya wala pang attendance o quiz data na ipapakita. Gumagana pa rin nang buo ang Vault, Study Mode, Bedtime at content filter. Ikonekta gamit ang class code mula sa Vault screen.",
+  'Attendance, quiz results and reports for every child arrive here.':'Dumarating dito ang attendance, resulta ng quiz, at mga report para sa bawat anak.',
+  'No alerts yet. They appear when the teacher submits attendance.':'Wala pang alerto. Lalabas ito kapag nagsumite ang guro ng attendance.',
+  'Teacher':'Guro', 'Parent/Guardian':'Magulang/Guardian', 'Student':'Estudyante', 'Principal':'Punong-guro', 'Vice Principal':'Ikalawang Punong-guro',
+  'No class running. The Vault switches on by itself when a class starts.':'Walang tumatakbong klase. Kusang nagsi-switch on ang Vault kapag nagsimula ang klase.',
+  'Starting a class locks the Vault on every student device.':'Kapag sinimulan ang klase, naka-lock ang Vault sa bawat device ng estudyante.',
+  'Every parent sees this in their School announcements feed.':'Makikita ito ng bawat magulang sa kanilang School announcements feed.',
+  "e.g. No classes this Friday — teachers' training day.":'hal. Walang pasok sa Biyernes — training day ng mga guro.',
+  'Send':'Ipadala',
+  "Encrypted private channel. Only the teacher and enrolled students can read it. Parents can't join.":'Encrypted at pribadong channel. Ang guro at mga naka-enrol na estudyante lang ang makakabasa nito. Hindi puwedeng sumali ang mga magulang.',
+  'Video call':'Video call',
+  'Every parent sees this right away. As':'Makikita agad ito ng bawat magulang. Bilang',
+  "no extra PIN is needed — you're already signed in as an administrator.":'hindi na kailangan ng karagdagang PIN — naka-sign in ka na bilang administrator.',
+  'This morning':'Kaninang umaga', 'present':'pumasok', 'absent':'wala', 'late':'huli',
+  'Worth a look before marking the afternoon':'Sulit tingnan bago markahan ang hapon',
+  'Off, but still locked by Study/Bedtime.':'Naka-off, pero naka-lock pa rin dahil sa Study/Bedtime.',
+  'Class Section':'Seksyon ng Klase', 'class code':'class code', 'Morning':'Umaga', 'Afternoon':'Hapon'
+};
+function t(k){ return (T[S.lang]&&T[S.lang][k]) || T.en[k] || k; }
+function toggleLang(){ S.lang = S.lang==='fil' ? 'en' : 'fil'; render(); }
+function langBtn(){ return `<button class="chip" onclick="toggleLang()" aria-label="Switch language">${S.lang==='fil'?'EN':'FIL'}</button>`; }
+const NAV_LABEL_FIL = {Vault:'Ang Vault', Filter:'Filter', Alerts:'Alerto', Me:'Ako', Attendance:'Pagdalo', 'Class Section':'Seksyon ng Klase', Quizzes:'Quiz', Class:'Klase'};
+function navLabel(l){ return S.lang==='fil' ? (NAV_LABEL_FIL[l]||l) : l; }
+function prefsBtn(){ return `<button class="chip" onclick="openPrefs()" aria-label="Language and appearance settings">⚙</button>`; }
+function openPrefs(){ S.modal='prefs'; render(); }
+function toggleTheme(){
+  const html = document.documentElement;
+  const cur = html.getAttribute('data-theme');
+  const dark = cur==='dark' || (!cur && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  html.setAttribute('data-theme', dark?'light':'dark');
+  render();
+}
+function themeBtn(){
+  const html = document.documentElement; const cur = html.getAttribute('data-theme');
+  const dark = cur==='dark' || (!cur && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  return `<button class="chip" onclick="toggleTheme()" aria-label="Turn ${dark?'off':'on'} dark mode">${dark?'☀️':'🌙'}</button>`;
+}
+function minutesUntil(target){
+  const now = new Date();
+  const [th,tm] = (target||'00:00').split(':').map(Number);
+  const t = new Date(now); t.setHours(th,tm,0,0);
+  let diff = Math.round((t-now)/60000);
+  if(diff < -60) diff += 1440;
+  return diff;
+}
+function pruneExpiredReminders(){
+  const now = new Date();
+  const before = S.reminders.length;
+  S.reminders = S.reminders.filter(r=>{
+    if(!r.date) return true;
+    const end = new Date(r.date+'T'+(r.time||'23:59:59'));
+    return end >= now;
+  });
+  return S.reminders.length !== before;
+}
+function checkSchedules(){
+  pruneExpiredReminders();
+  const now = new Date(); const hh = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  S.kids.forEach(k=>{
+    if(k.active){ k.startingSoon=null; return; }
+    k.startingSoon = null;
+    if(k.schedule.studyOn){ const m=minutesUntil(k.schedule.studyStart); if(m>0&&m<=5) k.startingSoon={type:'study', mins:m}; }
+    if(!k.startingSoon && k.schedule.bedOn){ const m=minutesUntil(k.schedule.bedStart); if(m>0&&m<=5) k.startingSoon={type:'bed', mins:m}; }
+    if(k.schedule.studyOn && k.schedule.studyStart===hh){ k.active={type:'study', hrs:hoursBetween(k.schedule.studyStart,k.schedule.studyEnd), elapsed:0}; k.startingSoon=null; }
+    else if(k.schedule.bedOn && k.schedule.bedStart===hh){ k.active={type:'bed', hrs:hoursBetween(k.schedule.bedStart,k.schedule.bedEnd), elapsed:0}; k.startingSoon=null; }
+  });
+  render();
+}
+setInterval(checkSchedules, 20000);
+function startingSoonBanner(k){
+  if(!k || !k.startingSoon) return '';
+  const label = k.startingSoon.type==='study' ? 'Study Mode' : 'Bedtime';
+  const mins = k.startingSoon.mins;
+  return `<div class="note" style="background:var(--latebg);border-color:var(--late);margin-bottom:10px">⏰ ${label} locks in ${mins} minute${mins===1?'':'s'} — a good time to wrap up.</div>`;
+}
+
+
+function tile(a, inside, locked, viewer){
+  const pop = S.justAdded===a.n && inside ? ' pop' : '';
+  if(viewer){
+    return `<div class="tile${inside?' in':''}${inside&&locked?' lk':''}"><span class="ico" style="background:${a.c}">${a.i}</span><span class="tn">${a.n}</span>${inside&&locked?'<span class="badge">🔒</span>':''}</div>`;
+  }
+  if(inside){
+    return `<div class="tile in${locked?' lk':''}${pop}" draggable="true" ondragstart="drag(event,'${a.n}')">
+      <button class="tilebtn" onclick="openApp('${a.n}')" ${locked?'disabled':''} aria-label="${locked?a.n+' is locked right now':'Open '+a.n}">
+        <span class="ico" style="background:${a.c}">${a.i}</span><span class="tn">${a.n}</span>${locked?'<span class="badge">🔒</span>':''}
+      </button>
+      <button class="tilex" onclick="event.stopPropagation();takeOut('${a.n}')" aria-label="Take ${a.n} out of the vault (PIN needed)">✕</button>
+      <button class="tileout" onclick="takeOut('${a.n}')">Move out</button>
+    </div>`;
+  }
+  return `<button class="tile" draggable="true" ondragstart="drag(event,'${a.n}')" onclick="putIn('${a.n}')" aria-label="Put ${a.n} in the vault">
+    <span class="ico" style="background:${a.c}">${a.i}</span><span class="tn">${a.n}</span></button>`;
+}
+function vaultCardView(locked, viewer){
+  const ins = inVault(), out = kid().phone.filter(a=>!a.v);
+  const off = !kid().vaultActive;
+  const schedLocked = off && isLocked();
+  return `${startingSoonBanner(kid())}<div class="card"><div class="row"><div><h2>${tr("The Vault")}</h2><p class="sub" style="margin:0">${viewer?(schedLocked?tr('Off, but still locked by Study/Bedtime.'):off?tr('Off: apps inside can be used freely.'):tr('Apps inside are protected.')):(schedLocked?tr('Off, but still locked by Study/Bedtime.'):off?tr('Off: apps inside can be used freely.'):tr('Put an app inside to protect it.'))}</p></div>
+    ${viewer?`<div class="swrap"><span>${off?'Off':'On'}</span><button class="sw${off?'':' on'}" disabled aria-label="Only ${esc(S.names.parent)} can change this"><i></i></button></div>`
+    :`<div class="swrap"><span>${off?'Off':'On'}</span><button class="sw${off?'':' on'}" role="switch" aria-checked="${!off}" aria-label="Turn the Vault on or off" onclick="toggleVault()"><i></i></button></div>`}</div>
+    ${!kid().vaultActive&&isLocked()?`<div class="note" style="margin-bottom:10px">${tr("You've turned the Vault off, but Study Mode, Bedtime, or a class lock is still running, so these apps stay locked until it ends. Study and Bedtime always take priority over the Vault switch.")}</div>`:''}
+    <div class="vault${locked?' locked':''}" ${viewer?'':'ondragover="event.preventDefault()" ondrop="dropIn(event)"'}>
+      ${ins.length?`<div class="tiles">${ins.map(a=>tile(a,true,locked,viewer)).join('')}</div>`:'<p class="empty">The vault is empty.<br>Tap an app below to put it inside.</p>'}
+      <div class="vstat">${ins.length} app${ins.length===1?'':'s'} inside · ${off&&locked?'locked by schedule':off?'Vault off · usable':locked?'locked right now':'ready'}</div></div>
+    <p class="sub" style="margin:16px 0 8px">${tr("Apps on this phone")}</p>
+    ${out.length?`<div class="tiles">${out.map(a=>tile(a,false,false,viewer)).join('')}</div>`:'<p class="sub" style="margin:0">Every app is in the vault.</p>'}
+    <p class="hint" style="margin-top:12px">${viewer?'Only '+esc(S.names.parent)+' can move apps in or out of the Vault.':"Tap an app to open it, no PIN needed when the Vault is off. Tap the ✕ to take an app out of the vault, that always needs your PIN."}</p></div>
+  <div class="card"><div class="row"><div><h2>Link code for ${esc(kid().name)}</h2><p class="sub" style="margin:0">Your child enters this code when creating a student account.</p></div><b style="font:800 18px var(--head);white-space:nowrap">${esc(kid().linkCode)}</b></div></div>
+  ${schoolCard(viewer)}
+  `;
+}
+function schoolCard(viewer){
+  const k = kid();
+  if(k.classId!=null){
+    const cls = S.classes[k.classId];
+    return `<div class="card"><h2>${tr("School")}</h2><p class="sub" style="margin:0">${esc(k.name)} ${tr('is connected to')} <b>${esc(cls.name)}</b>, ${tr('desk')} ${k.desk+1}. ${tr('This is how the teacher and this family stay linked.')}</p></div>`;
+  }
+  return `<div class="card"><h2>${tr("School")}</h2><p class="sub">${esc(k.name)} ${tr("isn't connected to a class yet.")}</p>
+    ${viewer?`<p class="hint" style="margin:0">${tr('Only')} ${esc(S.names.parent)} ${tr('can connect a child to a class.')}</p>`
+    :`<button class="btn alt block" onclick="openJoinClass()">${tr("Connect to a class")}</button>`}</div>`;
+}
+function openJoinClass(){
+  if(isViewer()){ say('View only', S.names.parent+' needs to make this change.'); return; }
+  S.joinClassCode=''; S.modal='joinclass'; render();
+}
+function joinClass(){
+  const k = kid();
+  const idx = S.classes.findIndex(c=>c.code===(S.joinClassCode||'').trim().toUpperCase());
+  if(idx<0){ say('Code not found', "Check the class code with your child's teacher and try again."); return; }
+  const cls = S.classes[idx];
+  const seat = cls.deskNames.findIndex((n,i)=>!S.kids.some(x=>x.classId===idx && x.desk===i));
+  if(seat<0){ say('Class is full', cls.name+' has no open seats left in this demo.'); return; }
+  k.classId = idx; k.desk = seat; cls.deskNames[seat] = k.name;
+  S.modal=null; render();
+  say('Connected', esc(k.name)+' is now connected to '+cls.name+', desk '+(seat+1)+'.');
+}
+function toggleVault(){
+  if(isViewer()){ say('View only', S.names.parent+' needs to make this change.'); return; }
+  kid().vaultActive = !kid().vaultActive; render();
+  if(kid().vaultActive){ say('Vault turned on','Apps inside are protected and follow Study, Bedtime and class locks again.'); return; }
+  if(isLocked()){ say('Vault turned off','But Study, Bedtime, or a class lock is still running, so these apps stay locked until it ends.'); return; }
+  say('Vault turned off','Apps inside can be used freely. They still can\'t be moved out without your PIN.');
+}
+function putIn(n){ if(isViewer()){ say('View only', S.names.parent+' needs to make this change.'); return; } const a=kid().phone.find(x=>x.n===n); if(!a||a.v) return; a.v=true; S.justAdded=n; render(); setTimeout(()=>{S.justAdded=null;},600); }
+function takeOut(n){ if(isViewer()){ say('View only', S.names.parent+' needs to make this change.'); return; } S.pendingRemove=n; S.pinFor=null; S.modal='pin'; S.pinErr=''; render(); }
+function drag(e,n){ e.dataTransfer.setData('text/plain', n); }
+function dropIn(e){ e.preventDefault(); putIn(e.dataTransfer.getData('text/plain')); }
+function openApp(n){ if(effLocked()) return; S.openApp=n; S.modal='app'; render(); }
+function studentMove(n){
+  S.inbox.unshift({at:Date.now(), t:'Move-out attempt', b:kid().name+' tried to move '+n+' out of the vault.', warn:true});
+  say('Only your parent can do that', n+' stays in the vault. Ask your parent to take it out with their PIN.');
+}
+function onlineChip(){ return `<button class="chip" style="${S.online?'':'background:var(--bad);color:#fff;border-color:var(--bad)'}" onclick="toggleOnline()">${S.online?'Online':'Offline'}</button>`; }
+function toggleOnline(){
+  S.online = !S.online;
+  if(S.online && S.syncQueue.length){
+    const q = S.syncQueue; S.syncQueue = []; q.forEach(fn=>fn()); render();
+    say('Back online', 'Synced '+q.length+' update'+(q.length===1?'':'s')+'. Parents have been notified.');
+  } else {
+    render();
+    say(S.online?'Back online':'Offline mode', S.online?'You\'re reconnected.':'Attendance and previous records stay available on this device. New submissions are saved now and sent once you\'re back online.');
+  }
+}
+function requestPerformance(){
+  if(kid().classId==null) return;
+  kid().perfRequested = true; kid().perfSent = false; kid().perfNote = '';
+  kidClass().notes.unshift(S.names.parent+' requested a full performance report for '+kid().name+'.');
+  say('Request sent', 'Your teacher will get a notification and can reply from the app.');
+  render();
+}
+function openPerfReply(kidIdx){ S.replyKidIdx = kidIdx; S.modal='perf'; S.kids[kidIdx].perfNote=''; render(); }
+function sendPerfReport(){
+  const k = S.kids[S.replyKidIdx]; const cls = kidClass(k);
+  const att = sess => cls.submitted[sess] ? (cls.att[sess][k.desk]==='A'?'absent':cls.att[sess][k.desk]==='L'?'late':'present') : 'not yet recorded';
+  const quizPart = cls.graded ? ('scored '+cls.graded.s+' / '+cls.graded.t+' on "'+cls.quiz.title+'"'+(released(cls)?'':' (not yet released)')) : 'no quiz recorded yet';
+  const note = ($('perfNoteIn') ? $('perfNoteIn').value : k.perfNote).trim();
+  S.inbox.unshift({at:Date.now(), t:'Performance report from '+displayName(S.user), b:(note?('"'+note+'" — '):'')+k.name+' — morning: '+att('AM')+', afternoon: '+att('PM')+'. Quiz: '+quizPart+'. Also emailed to '+S.parentEmail+'.', ic:'📧'});
+  k.perfSent = true; k.perfRequested = false; k.perfNote=''; S.modal=null; S.replyKidIdx=null;
+  say('Sent', 'Delivered in-app and emailed to '+S.parentEmail+'.');
+  render();
+}
+const FILTERS = [
+  {id:'young', label:'Young child', age:'Best for ages 6–9', icon:'🧸', blocks:['Only approved, kid-safe sites and a kids search engine','No social media, video sites, or messaging apps','No search results outside the approved list']},
+  {id:'child', label:'Older child', age:'Best for ages 10–12', icon:'📚', blocks:['Adult, violent and gambling content blocked','Search is filtered with safe search forced on','Social media and chat apps blocked']},
+  {id:'teen', label:'Teen', age:'Best for ages 13–17', icon:'🎧', blocks:['Explicit and adult content blocked','Search and most sites allowed','Social media allowed, activity is logged for parents']},
+  {id:'off', label:'No restriction', age:'Adult or supervised use only', icon:'🔓', blocks:['Nothing is blocked','Not recommended while a child\'s account is active']}
+];
+function filterView(){
+  const viewer = isViewer();
+  const open = settingsOpen();
+  const editable = open && !viewer;
+  const gate = viewer
+    ? `<div class="card" style="background:var(--bg)"><p class="sub" style="margin:0">👀 ${tr("You're viewing as")} ${esc(S.names.parent2)}. ${tr('Only')} ${esc(S.names.parent)} ${tr('can change the content filter.')}</p></div>`
+    : open
+    ? `<div class="card" style="background:var(--okbg);border-color:var(--ok)"><div class="row"><div><h2 style="font-size:15px">${tr("Settings unlocked")}</h2><p class="sub" style="margin:0">${tr('Locks again after 15 minutes or when you leave this screen.')}</p></div><button class="btn alt" onclick="lockSettings()">${tr("Lock now")}</button></div></div>`
+    : `<div class="card" style="background:var(--latebg)"><div class="row"><div><h2 style="font-size:15px">${tr("Content filter is locked")}</h2><p class="sub" style="margin:0">${tr('Enter your PIN to change it.')}</p></div><button class="btn lock" onclick="askSettingsPin()">${tr("Enter PIN")}</button></div></div>`;
+  const cards = FILTERS.map(f=>{
+    const on = kid().filterLevel===f.id;
+    return `<button class="filtercard${on?' on':''}" ${editable?'':'disabled'} onclick="selectFilter('${f.id}')" aria-pressed="${on}">
+      <div class="fc-top"><span class="fc-ico">${f.icon}</span><div><b>${tr(f.label)}</b><span class="fc-age">${tr(f.age)}</span></div>${on?`<span class="fc-check">✓ ${tr('Active')}</span>`:''}</div>
+      <ul class="fc-list">${f.blocks.map(b=>`<li>${tr(b)}</li>`).join('')}</ul></button>`;
+  }).join('');
+  return `${kidSwitcher()}<p class="sub" style="margin:0 0 4px">${tr('One tap sets everything. No menus to dig through.')}</p>
+  ${gate}
+  <div class="filtergrid"${editable?'':' style="opacity:.55"'}>${cards}</div>
+  <p class="hint" style="margin-top:14px">${tr('Filtering is handled by a licensed content-filtering engine built into the app, the same category of technology used by other parental-control apps. It is not powered by Claude or any AI chat tool — it works automatically once you pick a level, with nothing left for you to configure.')}</p>`;
+}
+function selectFilter(id){
+  if(isViewer()){ say('View only', S.names.parent+' needs to make this change.'); return; }
+  if(!settingsOpen()){ askSettingsPin(); return; }
+  kid().filterLevel = id; render();
+  const f = FILTERS.find(x=>x.id===id);
+  say('Content filter updated', 'Set to "'+f.label+'." This applies automatically across every app in the Vault.');
+}
+function alertsView(){
+  const btnLabel = kid().perfRequested ? tr('Waiting for teacher…') : tr('Request full performance report');
+  const cls = kidClass();
+  const perfCard = cls
+    ? `<div class="card"><h2>${S.lang==="fil" ? "Performance ni "+esc(kid().name) : esc(kid().name)+"'s performance"}</h2>
+    <p class="sub">${tr('A quick snapshot, plus a full report on request.')}</p>
+    <div class="status"><span class="st-pill ${cls.submitted.AM?'ok':'wait'}">${tr('Morning')} ${cls.submitted.AM?(cls.att.AM[kid().desk]==='A'?tr('absent'):cls.att.AM[kid().desk]==='L'?tr('late'):tr('present')):tr('pending')}</span><span class="st-pill ${cls.submitted.PM?'ok':'wait'}">${tr('Afternoon')} ${cls.submitted.PM?(cls.att.PM[kid().desk]==='A'?tr('absent'):cls.att.PM[kid().desk]==='L'?tr('late'):tr('present')):tr('pending')}</span><span class="st-pill ${cls.graded&&released(cls)?'ok':'wait'}">${tr('Quiz')} ${cls.graded?(released(cls)?cls.graded.s+'/'+cls.graded.t:tr('held')):tr('not taken')}</span></div>
+    <button class="btn alt block" style="margin-top:12px" ${kid().perfRequested?'disabled':''} onclick="requestPerformance()">${btnLabel}</button></div>`
+    : `<div class="card"><h2>${S.lang==="fil" ? "Performance ni "+esc(kid().name) : esc(kid().name)+"'s performance"}</h2><p class="sub" style="margin:0">${esc(kid().name)} ${tr("isn't connected to a class yet, so there's no attendance or quiz data to show. Vault, Study Mode, Bedtime and the content filter still work fully. Connect them with a class code from the Vault screen.")}</p></div>`;
+  return `${kidSwitcher()}${sosBanner()}${perfCard}
+  <div class="card"><h2>${tr("School alerts")}</h2>
+    <p class="sub">${tr('Attendance, quiz results and reports for every child arrive here.')}</p>
+    ${S.inbox.length?S.inbox.map(m=>`<div class="app"><div class="ico" style="background:${m.warn?'var(--bad)':'var(--ok)'}">${m.ic||(m.warn?'!':'✓')}</div><div class="nm">${esc(m.t)}<div class="st">${esc(m.b)}</div></div></div>`).join(''):`<p class="sub" style="margin:0">${tr('No alerts yet. They appear when the teacher submits attendance.')}</p>`}</div>`;
+}
+function mePutIn(n){ const a=S.me.apps.find(x=>x.n===n); if(a){ a.v=true; render(); } }
+function meTakeOut(n){ S.pendingRemoveMe=n; S.modal='pin'; S.pinErr=''; render(); }
+function fmtReminderWhen(date,time){
+  if(!date) return time || 'No date set';
+  const dt = new Date(date+'T'+(time||'00:00'));
+  const dateStr = dt.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+  return time ? dateStr+' · '+dt.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}) : dateStr;
+}
+function addReminder(){
+  S.reminderForm = {title:'', date:'', time:'', note:'', source:'manual'};
+  S.reminderErr=''; S.modal='reminder'; render();
+}
+function removeReminder(i){ S.reminders.splice(i,1); render(); }
+function addReminderFromAnnouncement(i){
+  const a = S.announcements[i];
+  S.reminderForm = {title:a.t, date:'', time:'', note:a.b, source:'announcement'};
+  S.reminderErr=''; S.modal='reminder'; render();
+}
+function saveReminder(){
+  const f = S.reminderForm;
+  const title = (f.title||'').trim();
+  if(!title){ S.reminderErr='Please enter a title.'; render(); return; }
+  S.reminders.unshift({t:title, when:fmtReminderWhen(f.date,f.time), date:f.date||'', time:f.time||'', note:f.note||'', source:f.source||'manual'});
+  S.modal=null; S.reminderForm=null; S.reminderErr=''; render();
+  say('Reminder saved', title+' added to your reminders.');
+}
+function meTile(a, inside){
+  if(inside){
+    return `<div class="tile in lk">
+      <span class="ico" style="background:${a.c}">${a.i}</span><span class="tn">${a.n}</span><span class="badge">🔒</span>
+      <button class="tilex" onclick="event.stopPropagation();meTakeOut('${a.n}')" aria-label="Take ${a.n} out of your vault">✕</button>
+      <button class="tileout" onclick="meTakeOut('${a.n}')">Move out</button>
+    </div>`;
+  }
+  return `<button class="tile" onclick="mePutIn('${a.n}')" aria-label="Put ${a.n} in your vault">
+    <span class="ico" style="background:${a.c}">${a.i}</span><span class="tn">${a.n}</span></button>`;
+}
+function meView(){
+  const ins = S.me.apps.filter(a=>a.v), out = S.me.apps.filter(a=>!a.v);
+  const remList = S.reminders.length ? S.reminders.map((r,i)=>`<div class="app"><div class="ico" style="background:${r.source==='announcement'?'#12867E':'#5B6780'}">${r.source==='announcement'?'🏫':'📌'}</div><div class="nm">${esc(r.t)}<div class="st">${esc(r.when)}</div></div><button class="btn alt" style="padding:6px 10px;font-size:12px" onclick="removeReminder(${i})">${tr("Remove")}</button></div>`).join('') : `<p class="sub" style="margin:0">${tr('No reminders yet.')}</p>`;
+  const annList = S.announcements.map((a,i)=>`<div class="app"><div class="ico" style="background:#14213D">🏫</div><div class="nm">${esc(a.t)}<div class="st">${esc(a.b)}</div></div><button class="btn" style="padding:6px 10px;font-size:12px" onclick="addReminderFromAnnouncement(${i})">Remind me</button></div>`).join('');
+  return `
+  <div class="card"><h2>${tr("My Vault")}</h2><p class="sub" style="margin:0 0 10px">${tr("Same idea as the Vault, just for your own phone. Apps inside are locked and can't be opened.")}</p>
+    <div class="vault myvault${ins.length?' locked':''}">
+      ${ins.length?`<div class="tiles">${ins.map(a=>meTile(a,true)).join('')}</div>`:'<p class="empty">Your vault is empty.<br>Tap an app below to put it inside.</p>'}
+      <div class="vstat">${ins.length} app${ins.length===1?'':'s'} inside · ${ins.length?'locked right now':'ready'}</div></div>
+    <p class="sub" style="margin:16px 0 8px">${tr("Apps on this phone")}</p>
+    ${out.length?`<div class="tiles">${out.map(a=>meTile(a,false)).join('')}</div>`:`<p class="sub" style="margin:0">${tr('Every app is in your vault.')}</p>`}
+    <p class="hint" style="margin-top:12px">Tap an app to add it. Taking an app out needs your PIN, same as the child's Vault.</p>
+  </div>
+  <div class="card"><h2>${tr("Reminders")}</h2>
+    <p class="sub">${tr("Set a real date and time, like an ordinary reminder.")}</p>
+    ${remList}
+    <button class="btn block" style="margin-top:10px" onclick="addReminder()">+ ${tr("Add reminder")}</button>
+  </div>
+  <div class="card"><h2>${tr("From your school")}</h2>
+    <p class="sub">${tr('Tap "Remind me" to save one — no retyping.')}</p>
+    ${annList}
+  </div>`;
+}
+function askParent(){
+  S.inbox.unshift({at:Date.now(), t:'Unlock request', b:kid().name+' asked for the Vault to be unlocked.', ic:'?'});
+  say('Request sent','Your parent will see it in their alerts.');
+}
+function studentHome(){
+  const a = kid().active, locked = effLocked();
+  const vault = inVault().map(x=>`<div class="app"><div class="ico" style="background:${x.c}">${x.i}</div><div class="nm">${x.n}<div class="st">${locked?'Blocked right now':'Available'}</div></div><button class="btn ${locked?'alt':'lock'}" style="padding:6px 10px;font-size:12px" ${locked?'disabled':''} onclick="openApp('${x.n}')">${locked?'Locked':'Open'}</button><button class="btn alt" style="padding:6px 10px;font-size:12px" onclick="studentMove('${x.n}')">Move out</button></div>`).join('') || '<p class="sub" style="margin:0">Your parent hasn\'t put any apps in the vault yet.</p>';
+  return `${inOnlineClass()?`<div class="banner">Online Class Active — The Vault is Enabled.</div>`:''}
+  ${startingSoonBanner(kid())}
+  ${a ? `<div class="card">${ring()}
+    <p class="hint" style="text-align:center;margin:8px 0 0">Only your parent can unlock or change the Vault.</p>
+    <button class="btn alt block" style="margin-top:10px" onclick="askParent()">Ask my parent to unlock</button></div>` : feedCard()}
+  ${schoolCard(false)}
+  <div class="card"><h2>Apps in the Vault</h2>${vault}
+    <p class="hint" style="margin-top:10px">${locked?'These apps are locked right now.':'The lock is off, so you can use every app in the vault.'} Only your parent can move an app out of the vault.</p></div>`;
+}
+
+/* ---------- School ---------- */
+function setDesk(i){
+  const cls = myClass(); const arr = cls.att[cls.session]; if(cls.submitted[cls.session]) return;
+  if(arr[i]==='C'){ say('Cut class reported', 'This was reported by a subject teacher. See Class Section for details.'); return; }
+  const order = [null,'P','A','L','E'];
+  const next = order[(order.indexOf(arr[i])+1)%order.length];
+  if(next==='E'){
+    S.noteDesk = i; S.noteDeskType = next; S.noteDeskText=''; S.noteCategory='School activity'; S.modal='deskNote'; render(); return;
+  }
+  arr[i] = next; render();
+}
+function saveDeskNote(){
+  const cls = myClass(); const arr = cls.att[cls.session];
+  const i = S.noteDesk, note = (S.noteDeskText||'').trim();
+  if(!note){ say('Add a reason', 'A short reason is needed to mark this Excused.'); return; }
+  arr[i] = 'E';
+  cls.deskNotes = cls.deskNotes || {};
+  cls.deskNotes[cls.session+'_'+i] = note;
+  cls.excuseLog = cls.excuseLog || [];
+  cls.excuseLog.unshift({
+    student: cls.deskNames[i] || ('Desk '+(i+1)), desk: i+1, category: S.noteCategory||'Other',
+    note, session: cls.session==='AM'?'Morning':'Afternoon', writtenBy: displayName(S.user),
+    dayLabel: 'Today', daysAgo: 0
+  });
+  closeModal();
+  say('Marked Excused', 'Reason saved to the excuse log.');
+}
+function showStatusNames(status){
+  S.statusView = status; S.modal='statusNames'; render();
+}
+function markAll(){ const cls = myClass(); if(cls.submitted[cls.session]) return; cls.att[cls.session] = cls.att[cls.session].map(x=>x||'P'); render(); }
+function deliverAttendance(classIdx, session, arr){
+  const cls = S.classes[classIdx];
+  const c = k=>arr.filter(x=>x===k).length;
+  const name = session==='AM'?'Morning':'Afternoon';
+  const word = {P:'present',A:'absent',L:'late',E:'excused',C:'marked cut class'};
+  cls.notes.unshift(name + ' check sent to parents: ' + c('P') + ' present, ' + c('A') + ' absent, ' + c('L') + ' late' + (c('E')?', '+c('E')+' excused':'') + (c('C')?', '+c('C')+' cut class':'') + '.');
+  classKids(classIdx).forEach(k=>{
+    if(arr[k.desk]==null) return;
+    S.inbox.unshift({at:Date.now(), t:name+' attendance', b:k.name+' was marked '+word[arr[k.desk]]+' ('+name.toLowerCase()+' check).', warn: arr[k.desk]==='A'});
+  });
+  if(session==='PM' && cls.submitted.AM){
+    const cut = arr.map((v,i)=>(v==='A' && cls.att.AM[i]!=='A')?i:-1).filter(i=>i>=0);
+    if(cut.length){
+      cls.notes.unshift('Cutting-class alert sent for desk' + (cut.length>1?'s ':' ') + cut.map(i=>i+1).join(', ') + ': here this morning, absent this afternoon.');
+      classKids(classIdx).forEach(k=>{
+        if(cut.includes(k.desk)) S.inbox.unshift({at:Date.now(), t:'Possible cutting class', b:k.name+' was in class this morning but is absent this afternoon.', warn:true});
+      });
+    }
+  }
+  checkRelease(classIdx);
+}
+function submitAtt(){
+  const cls = myClass(); const classIdx = S.classes.indexOf(cls);
+  const session = cls.session, arr = cls.att[session];
+  cls.submitted[session] = true;
+  const name = session==='AM'?'Morning':'Afternoon';
+  if(S.online){
+    deliverAttendance(classIdx, session, arr.slice());
+    render(); say(name + ' attendance saved', arr.includes(null) ? 'Parents of marked students were notified. Empty seats were skipped.' : 'Parents were notified.');
+  } else {
+    cls.notes.unshift(name + ' attendance saved on this device (offline). Will notify parents once you\'re back online.');
+    S.syncQueue.push(()=>deliverAttendance(classIdx, session, arr.slice()));
+    render(); say(name + ' attendance saved offline','Parents will be notified once you\'re back online.');
+  }
+}
+function checkRelease(classIdx){
+  const cls = S.classes[classIdx];
+  if(released(cls) && cls.graded && !cls.resultSent){
+    cls.resultSent = true;
+    classKids(classIdx).forEach(k=>{
+      S.inbox.unshift({at:Date.now(), t:'Quiz result released', b:k.name+' scored '+cls.graded.s+' / '+cls.graded.t+' on "'+cls.quiz.title+'".'});
+    });
+  }
+}
+function setDeskName(i,val){ myClass().deskNames[i]=val; }
+function openClearClass(){ S.modal='clearclass'; render(); }
+function confirmClearClass(){
+  const cls = myClass(); const idx = S.classes.indexOf(cls);
+  const affected = classKids(idx);
+  affected.forEach(k=>{ k.classId=null; k.desk=null; });
+  cls.deskNames = Array(60).fill('');
+  cls.att = {AM: Array(60).fill(null), PM: Array(60).fill(null)};
+  cls.submitted = {AM:false, PM:false};
+  cls.notes = []; cls.resultSent = false;
+  cls.quiz = {title:'', published:false, online:false, onlineReleased:false, qs:[]};
+  cls.ans = []; cls.graded = null;
+  cls.chat = [];
+  S.modal = null; render();
+  say('Class reset', affected.length+' student'+(affected.length===1?'':'s')+' disconnected. '+cls.name+' is ready for a new school year — the class code still works for reconnecting.');
+}
+function regenerateClassCode(){
+  const cls = myClass();
+  cls.code = makeClassCode(); render();
+  say('New class code generated', 'The old code no longer works. Share '+cls.code+' with parents for this class.');
+}
+function toggleEditNames(){ myClass().editingNames = !myClass().editingNames; render(); }
+function morningSummary(cls){
+  if(cls.session!=='PM' || !cls.submitted.AM) return '';
+  const am = cls.att.AM;
+  const names = i => cls.deskNames[i] ? esc(cls.deskNames[i]) : ('Desk '+(i+1));
+  const absent = am.map((v,i)=>v==='A'?i:null).filter(i=>i!==null);
+  const late = am.map((v,i)=>v==='L'?i:null).filter(i=>i!==null);
+  const present = am.filter(v=>v==='P').length;
+  const flagged = [...absent.map(i=>names(i)+' (absent)'), ...late.map(i=>names(i)+' (late)')];
+  return `<div class="note" style="margin-bottom:10px">
+    <b>${tr('This morning')}:</b> ${present} ${tr('present')}, ${absent.length} ${tr('absent')}, ${late.length} ${tr('late')}.
+    ${flagged.length?`<div style="margin-top:4px">${tr('Worth a look before marking the afternoon')}: ${flagged.join(', ')}.</div>`:''}
+  </div>`;
+}
+function gridView(){
+  const cls = myClass();
+  const arr = cls.att[cls.session], done = cls.submitted[cls.session];
+  const c = k=>arr.filter(x=>x===k).length, un = arr.filter(x=>x===null).length;
+  const label = {P:'Present',A:'Absent',L:'Late',E:'Excused',C:'Cut class'};
+  const desks = cls.editingNames
+    ? arr.map((v,i)=>`<div class="desk name-edit"><small>${i+1}</small><input class="deskname" value="${esc(cls.deskNames[i]||'')}" placeholder="Name" oninput="setDeskName(${i},this.value)"></div>`).join('')
+    : arr.map((v,i)=>`<button class="desk ${v||''}" ${done?'disabled':''} aria-label="Desk ${i+1}${cls.deskNames[i]?', '+cls.deskNames[i]:''}: ${v?label[v]:'not marked'}" onclick="setDesk(${i})">${cls.deskNames[i]?esc(cls.deskNames[i]):i+1}<small>${v?label[v]:'·'}</small></button>`).join('');
+  return `<div class="card"><h2>${esc(cls.name)}</h2><p class="sub" style="margin:0">Your advisory section · Class advisor: ${esc(cls.teacherName)}</p></div>
+  <div class="card"><div class="row"><div><h2>${tr("Attendance")} · ${esc(cls.name)}</h2><p class="sub" style="margin:0">Tap a desk to cycle Present → Absent → Late → Excused. Excused asks for a short reason.</p></div><b style="font:800 15px var(--head);white-space:nowrap">${esc(cls.code)}</b></div>
+    <p class="hint" style="margin:2px 0 10px">${tr("Class code — give this to parents so they can connect their child here.")}</p>
+    <div class="row" style="gap:8px;margin-bottom:10px"><button class="btn alt" style="padding:8px 10px;font-size:12px" onclick="openClearClass()">${tr("Delete all (new school year)")}</button><button class="btn alt" style="padding:8px 10px;font-size:12px" onclick="regenerateClassCode()">${tr("Generate new code")}</button><button class="btn alt" style="padding:8px 10px;font-size:12px" onclick="openExcuseLog()">View excuse log</button></div>
+    ${!S.online?`<div class="note" style="margin-bottom:10px">You\'re offline. Previous attendance and records are still available on this device. New submissions are saved now and sent to parents once you\'re back online.</div>`:''}
+    ${morningSummary(cls)}
+    <div class="row"><div class="seg" role="group" aria-label="Session" style="flex:1;margin-bottom:0"><button aria-pressed="${cls.session==='AM'}" onclick="myClass().session='AM';render()">${tr("Morning")}</button><button aria-pressed="${cls.session==='PM'}" onclick="myClass().session='PM';render()">${tr("Afternoon")}</button></div>
+    <button class="btn alt" style="padding:8px 12px;font-size:13px" onclick="toggleEditNames()">${cls.editingNames?tr('Done'):tr('Edit names')}</button></div>
+    <div class="grid" style="margin-top:10px">${desks}</div>
+    ${cls.editingNames?'':`<div class="counts"><button style="background:var(--okbg);color:var(--ok)" onclick="showStatusNames('P')"><b>${c('P')}</b>Present</button><button style="background:var(--badbg);color:var(--bad)" onclick="showStatusNames('A')"><b>${c('A')}</b>Absent</button><button style="background:var(--latebg);color:var(--late)" onclick="showStatusNames('L')"><b>${c('L')}</b>Late</button><button style="background:#E6EFFD;color:#3B6FD6" onclick="showStatusNames('E')"><b>${c('E')}</b>Excused</button><button style="background:#F3E6FB;color:#8A3FBF" onclick="showStatusNames('C')"><b>${c('C')}</b>Cut class</button><div style="background:var(--bg);color:var(--muted)"><b>${un}</b>Unmarked</div></div>
+    <div class="row"><button class="btn alt" ${done?'disabled':''} onclick="markAll()">${tr("Mark rest present")}</button><button class="btn" ${done?'disabled':''} onclick="submitAtt()">${done?(S.online?'Submitted':'Saved · will sync'):(S.online?'Submit & notify parents':'Save (offline)')}</button></div>`}
+    ${cls.notes.length?`<ul class="log">${cls.notes.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`:''}</div>`;
+}
+const MAX_Q = 25;
+const released = (cls) => cls.quiz.onlineReleased || (cls.submitted.AM && cls.submitted.PM);
+function removeQuestion(i){ const cls=myClass(); if(cls.quiz.published) return; cls.quiz.qs.splice(i,1); cls.ans.splice(i,1); render(); }
+function moveQuestion(i,dir){ const cls=myClass(); if(cls.quiz.published) return; const j=i+dir; if(j<0||j>=cls.quiz.qs.length) return; const q=cls.quiz.qs,a=cls.ans; [q[i],q[j]]=[q[j],q[i]]; [a[i],a[j]]=[a[j],a[i]]; render(); }
+function publishResultNow(){
+  const cls = myClass();
+  cls.quiz.onlineReleased = true; checkRelease(S.classes.indexOf(cls)); render();
+  say('Result published', 'Released immediately since this was an online-class quiz.');
+}
+function builderView(){
+  const cls = myClass(); const classIdx = S.classes.indexOf(cls); const q = cls.quiz;
+  const edit = q.qs.map((x,i)=>`<div class="q">
+    <div class="qhead"><b>Question ${i+1}</b>${q.published?'':`<span class="qtools"><button aria-label="Move up" ${i===0?'disabled':''} onclick="moveQuestion(${i},-1)">↑</button><button aria-label="Move down" ${i===q.qs.length-1?'disabled':''} onclick="moveQuestion(${i},1)">↓</button><button aria-label="Delete question" ${q.qs.length<=1?'disabled':''} onclick="removeQuestion(${i})">✕</button></span>`}</div>
+    <input type="text" value="${esc(x.q)}" aria-label="Question ${i+1} text" placeholder="Question text" oninput="myClass().quiz.qs[${i}].q=this.value" ${q.published?'disabled':''}>
+    <p class="hint" style="margin:6px 0 2px">Options — tap the circle beside the correct answer</p>
+    ${x.o.map((o,j)=>`<label><input type="radio" name="c${i}" ${x.a===j?'checked':''} ${q.published?'disabled':''} onchange="myClass().quiz.qs[${i}].a=${j}" aria-label="Correct answer"><input type="text" value="${esc(o)}" aria-label="Option ${j+1}" oninput="myClass().quiz.qs[${i}].o[${j}]=this.value" ${q.published?'disabled':''}></label>`).join('')}</div>`).join('');
+  const quizKid = classKids(classIdx)[0];
+  const sub = cls.graded && quizKid
+    ? `<div class="app"><div class="ico" style="background:var(--ok)">${esc(quizKid.name[0])}</div><div class="nm">${esc(quizKid.name)}<div class="st">Submitted · auto-graded · Result: ${cls.graded.s} / ${cls.graded.t}</div></div><span class="tag ${released(cls)?'':'off'}">${released(cls)?'Released':'Held'}</span></div>`
+    : `<p class="sub" style="margin:0">${tr('No submissions yet. Sign in as the student to take the quiz.')}</p>`;
+  const canPublishNow = q.published && q.online && cls.graded && !released(cls);
+  return classSwitcher() + `<div class="card"><h2>${tr("Quiz builder")} · ${esc(cls.name)}</h2>
+    <p class="sub">${tr("Multiple choice: write the question, then mark the correct answer.")} ${q.qs.length} / ${MAX_Q} questions.</p>
+    <input type="text" value="${esc(q.title)}" aria-label="Quiz title" placeholder="Quiz title" oninput="myClass().quiz.title=this.value" ${q.published?'disabled':''}>
+    ${edit}
+    <div class="row" style="margin-top:12px"><button class="btn alt" ${q.published||q.qs.length>=MAX_Q?'disabled':''} onclick="myClass().quiz.qs.push({q:'New question',o:['Option A','Option B','Option C','Option D'],a:0});myClass().ans.push(null);render()">${tr("Add question")}</button>
+    <button class="btn" ${q.published||!q.qs.length?'disabled':''} onclick="const c=myClass();c.quiz.online=c.classActive;c.quiz.published=true;render();say('Quiz published',c.classActive?'Students can now take it. Since class is online, you can publish the result immediately once graded.':'Students can now take it.')">${q.published?'Published':'Publish quiz'}</button></div>
+    ${q.published&&q.online?`<p class="hint" style="margin-top:8px">📶 Published during an online class — you can release this result immediately instead of waiting for attendance.</p>`:''}</div>
+  ${q.published?`<div class="card"><h2>${tr("Submissions")}</h2>
+    <div class="status"><span class="st-pill ${cls.submitted.AM?'ok':'wait'}">Morning ${cls.submitted.AM?'recorded':'pending'}</span><span class="st-pill ${cls.submitted.PM?'ok':'wait'}">Afternoon ${cls.submitted.PM?'recorded':'pending'}</span>${q.online?`<span class="st-pill ${released(cls)?'ok':'wait'}">Online quiz</span>`:''}</div>
+    <p class="sub">Scores reach students and parents after both attendance checks — or right away if you publish an online-class result now.</p>${sub}
+    ${canPublishNow?`<button class="btn block" style="margin-top:10px" onclick="publishResultNow()">Publish result now (online class)</button>`:''}</div>`:''}`;
+}
+function takeView(){
+  const cls = kidClass();
+  if(!cls) return `<div class="card"><h2>${tr("Not connected to a class")}</h2><p class="sub" style="margin:0">Ask your parent to connect you to your teacher's class with a class code, on the Vault screen.</p></div>`;
+  const q = cls.quiz;
+  if(!q.published) return `<div class="card"><h2>${tr("No quiz yet")}</h2><p class="sub" style="margin:0">Your teacher hasn't published a quiz. Check back later.</p></div>`;
+  const take = q.qs.map((x,i)=>`<div class="q"><b>${i+1}. ${esc(x.q)}</b>${x.o.map((o,j)=>`<label><input type="radio" name="s${i}" ${cls.ans[i]===j?'checked':''} ${cls.graded?'disabled':''} onchange="kidClass().ans[${i}]=${j}"> ${esc(o)}</label>`).join('')}</div>`).join('');
+  let result = '';
+  if(cls.graded){ result = released(cls)
+    ? `<div class="note" style="background:var(--okbg)"><b>Your score: ${cls.graded.s} / ${cls.graded.t}</b></div>`
+    : `<div class="note"><b>Answers submitted and graded.</b> Your score appears after today's attendance is recorded.</div>`; }
+  return `<div class="card"><h2>${esc(q.title)}</h2>${take}
+    <button class="btn block" style="margin-top:12px" ${cls.graded?'disabled':''} onclick="gradeQuiz()">${tr("Submit answers")}</button>${result}</div>`;
+}
+function gradeQuiz(){
+  const cls = kidClass(); if(!cls) return;
+  if(cls.ans.some(a=>a===null)){ say('Answer every question first','Some questions are blank.'); return; }
+  const s = cls.quiz.qs.reduce((n,x,i)=>n+(cls.ans[i]===x.a?1:0),0);
+  cls.graded = {s, t:cls.quiz.qs.length}; checkRelease(kid().classId); render();
+}
+function perfReqCard(){
+  const cls = myClass(); const classIdx = S.classes.indexOf(cls);
+  const pending = S.kids.map((k,i)=>({k,i})).filter(x=>x.k.classId===classIdx && x.k.perfRequested);
+  if(!pending.length) return '';
+  return pending.map(({k,i})=>`<div class="card" style="background:var(--latebg)"><div class="row"><div><h2 style="font-size:15px">🔔 ${tr('Performance report requested')}</h2><p class="sub" style="margin:0">${esc(S.names.parent)} asked for a full report on ${esc(k.name)}. Reply from here — it goes to the app and their email.</p></div><button class="btn lock" onclick="openPerfReply(${i})">${tr("Reply")}</button></div></div>`).join('');
+}
+function schoolView(){ return classSwitcher() + perfReqCard() + gridView(); }
+
+/* ---------- Chat ---------- */
+function chatClass(){ return isTeacher() ? myClass() : kidClass(); }
+function msgBubble(m){
+  const own = (m.w==='t')===isTeacher();
+  if(m.kind==='photo') return `<div class="m ${own?'s':'t'} photo"><small>${own?'You':esc(m.who)}</small><img src="${m.t}" alt="Shared photo"></div>`;
+  if(m.kind==='emoji') return `<div class="m ${own?'s':'t'} emoji"><small>${own?'You':esc(m.who)}</small><span class="bigemoji">${m.t}</span></div>`;
+  return `<div class="m ${own?'s':'t'}"><small>${own?'You':esc(m.who)}</small>${esc(m.t)}</div>`;
+}
+function chatView(){
+  const teacher = isTeacher();
+  const cls = chatClass();
+  if(!cls) return `<div class="card"><h2>${tr("Not connected to a class")}</h2><p class="sub" style="margin:0">${teacher?'':"Connect to your teacher's class from the My Vault screen, using the class code they give you."}</p></div>`;
+  const b = cls.classActive
+    ? `<div class="banner">Online Class Active — The Vault is Enabled.</div>`
+    : `<div class="banner idle">${tr("No class running. The Vault switches on by itself when a class starts.")}</div>`;
+  const ms = cls.chat.map(msgBubble).join('');
+  const enrolled = classKids(S.classes.indexOf(cls)).length;
+  const ctl = teacher ? `<div class="card"><div class="row"><div><h2>${tr("Online class")} · ${esc(cls.name)}</h2><p class="sub" style="margin:0">${tr("Starting a class locks the Vault on every student device.")}</p></div>
+    <button class="btn ${cls.classActive?'alt':''}" onclick="toggleClass()">${cls.classActive?'End class':'Start class'}</button></div>
+    ${cls.classActive?`<p class="hint" style="margin:10px 0 0">The Vault is on for ${enrolled} of ${enrolled} student device${enrolled===1?'':'s'}.</p>`:''}</div>
+  <div class="card"><h2>📣 ${tr("Post a school announcement")}</h2><p class="sub">${tr("Every parent sees this in their School announcements feed.")}</p>
+    <textarea id="annIn" class="field" rows="2" placeholder="${tr("e.g. No classes this Friday — teachers' training day.")}" oninput="S.announceDraft=this.value">${esc(S.announceDraft)}</textarea>
+    <button class="btn block" style="margin-top:10px" onclick="postAnnouncement()">${tr("Post to all parents")}</button></div>` : '';
+  return `${teacher?classSwitcher():''}${b}
+  <div class="row" style="margin-bottom:8px"><p class="hint" style="margin:0;flex:1">🔒 ${tr("Encrypted private channel. Only the teacher and enrolled students can read it. Parents can't join.")}</p>
+  <button class="btn alt" style="padding:6px 10px;font-size:12px;flex:none;display:flex;align-items:center;gap:5px" onclick="openVideoCall()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10l6-4v12l-6-4"/></svg> ${tr("Video call")}</button></div>
+  ${ctl}
+  <div class="msgs">${ms}</div>`;
+}
+function toggleClass(){
+  const cls = myClass();
+  cls.classActive = !cls.classActive; render();
+  say(cls.classActive?'Class started':'Class ended', cls.classActive?'The Vault locked non-educational apps on all student devices.':'The Vault released the class lock.');
+}
+function send(){
+  const cls = chatClass(); if(!cls) return;
+  const el = $('msg'); const t = el.value.trim(); if(!t) return;
+  const tw = isTeacher(); cls.chat.push({w:tw?'t':'s', who:tw?displayName(S.user):kid().name, t}); render();
+  $('msg').focus(); const v = $('view'); v.scrollTop = v.scrollHeight;
+}
+function sendQuick(emoji){
+  const cls = chatClass(); if(!cls) return;
+  const tw = isTeacher(); cls.chat.push({w:tw?'t':'s', who:tw?displayName(S.user):kid().name, t:emoji, kind:'emoji'}); render();
+  const v = $('view'); v.scrollTop = v.scrollHeight;
+}
+function sendPhoto(input){
+  const cls = chatClass(); if(!cls || !input.files || !input.files[0]) return;
+  const file = input.files[0];
+  if(!file.type.startsWith('image/')){ say('Not a photo', 'Please choose an image file.'); return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const tw = isTeacher(); cls.chat.push({w:tw?'t':'s', who:tw?displayName(S.user):kid().name, t:reader.result, kind:'photo'}); render();
+    const v = $('view'); v.scrollTop = v.scrollHeight;
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+function openVideoCall(){
+  const cls = chatClass(); if(!cls) return;
+  S.modal='videocall'; render();
+}
+const QUICK_EMOJI = ['❤️','👍','😂','😮','🎉','👏'];
+function composeView(){
+  const emojiBar = QUICK_EMOJI.map(e=>`<button class="emojibtn" onclick="sendQuick('${e}')" aria-label="Send ${e}">${e}</button>`).join('');
+  return `<div class="emojibar">${emojiBar}</div>
+  <div class="compose">
+    <label class="iconbtn" aria-label="Send a photo"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><input type="file" accept="image/*" style="display:none" onchange="sendPhoto(this)"></label>
+    <input type="text" id="msg" placeholder="${tr('Type a message')}" aria-label="Message" onkeydown="if(event.key==='Enter')send()">
+    <button class="btn" onclick="send()">${tr("Send")}</button>
+  </div>`;
+}
+
+/* ---------- Modals ---------- */
+function modalView(){
+  if(!S.modal) return '';
+  let inner = '';
+  if(S.modal==='unlock'){
+    inner = `<h2>${tr("Unlock early?")}</h2><p class="sub">You're inside the hard lock window. Pick one to continue.</p>
+    <button class="opt" onclick="watchAd()"><b>Watch a 30-minute ad</b><span>Plays without skipping. Free.</span></button>
+    <button class="opt" onclick="pay()"><b>Pay $20.00 USD</b><span>Charged per unlock. You've spent $${kid().spent.toFixed(2)} so far.</span></button>
+    <button class="btn alt block" style="margin-top:12px" onclick="closeModal()">${tr("Keep it locked")}</button>`;
+  } else if(S.modal==='ad'){
+    inner = `<h2>Ad playing</h2><p class="sub">Demo speed: 30 minutes plays in about 6 seconds.</p>
+    <div class="bar"><i style="width:${S.adProg}%"></i></div><p class="hint">${Math.round(30*(1-S.adProg/100))} min left</p>
+    <button class="btn alt block" onclick="closeModal()">${tr("Cancel")}</button>`;
+  } else if(S.modal==='sos'){
+    const opts = Object.entries(SOS_TYPES).map(([k,v])=>`<button class="opt" style="margin-top:8px;${S.sosType===k?'border-color:#B3261E;box-shadow:0 0 0 2px #B3261E':''}" aria-pressed="${S.sosType===k}" onclick="S.sosType='${k}';render()"><b>${v.name}</b><span>${v.hint}</span></button>`).join('');
+    inner = `<h2>${tr("Send an emergency alert")}</h2><p class="sub">${tr("Every student, every teacher and every parent is alerted right away.")}</p>
+      <div class="note">For a medical emergency, call the hospital or your local emergency number right away — don't wait on this app. SOS is for school-wide dangers like a lockdown or a fire.</div>
+      ${opts}
+      <label class="lab" style="display:flex;gap:8px;align-items:center"><input type="checkbox" ${S.sosDrill?'checked':''} onchange="S.sosDrill=this.checked"> ${tr("This is a drill")}</label>
+      <button id="holdBtn" class="hold" oncontextmenu="return false" onpointerdown="holdStart(event)" onpointerup="holdEnd()" onpointerleave="holdEnd()" onpointercancel="holdEnd()" onkeydown="if((event.key==='Enter'||event.key===' ')&&!event.repeat)holdStart(event)" onkeyup="if(event.key==='Enter'||event.key===' ')holdEnd()"><span id="holdBar"></span><span class="ht">${tr("Hold to send alert")}</span></button>
+      <div class="note" style="margin-top:12px">This app does not call emergency services. If anyone is in danger, call your local emergency number first.</div>
+      <button class="btn alt block" style="margin-top:10px" onclick="closeModal()">${tr("Cancel")}</button>`;
+  } else if(S.modal==='privacy'){
+    inner = `<h2>${tr("Privacy summary")}</h2><p class="sub">A plain-language overview for this prototype.</p>
+      <p class="hint" style="margin-top:10px"><b>What we collect:</b> your child's first name and age group; the apps you choose to lock; the Study/Bedtime times and filter level you set; and, if your child is linked to a school, their attendance and quiz scores. We also keep your email to run your account and send reports.</p>
+      <p class="hint" style="margin-top:10px"><b>Why:</b> to run the Vault, Study Mode, Bedtime, content filter and school features you turn on. Nothing is used for advertising.</p>
+      <p class="hint" style="margin-top:10px"><b>Who sees it:</b> only the parents on this family account, and, for school data, your child's teachers and school.</p>
+      <p class="hint" style="margin-top:10px">This is a short summary for the prototype. A real app would link a full privacy policy here, and follow child-privacy laws like COPPA and GDPR.</p>
+      <button class="btn alt block" style="margin-top:14px" onclick="closeModal()">${tr("Close")}</button>`;
+  } else if(S.modal==='delete'){
+    inner = `<h2>${tr("Delete your account?")}</h2><p class="sub">This permanently removes your family's data: every child's Vault, schedules, filter settings, and school history. This can't be undone.</p>
+      <label class="lab">Type DELETE to confirm<input class="field" type="text" name="delconfirm" value="${esc(S.deleteConfirm||'')}" oninput="S.deleteConfirm=this.value" autocomplete="nope"></label>
+      <label class="lab">Your PIN<input class="field" type="password" inputmode="numeric" maxlength="4" name="delpin" value="${esc(S.deletePin||'')}" oninput="S.deletePin=this.value" autocomplete="nope"></label>
+      <div class="err" role="alert">${S.pinErr||''}</div>
+      <div class="row" style="margin-top:12px"><button class="btn alt" onclick="closeModal()">${tr("Cancel")}</button><button class="btn" style="background:var(--bad)" onclick="confirmDeleteAccount()">${tr("Delete permanently")}</button></div>`;
+  } else if(S.modal==='clearclass'){
+    const cls = myClass(); const idx = S.classes.indexOf(cls);
+    const n = classKids(idx).length;
+    inner = `<h2>${tr("Start a new school year?")}</h2><p class="sub">This disconnects every student currently in ${esc(cls.name)} (${n} right now), and clears this class's attendance, quiz and chat history. The class code stays the same, so families can reconnect for the new year unless you also generate a new one.</p>
+      <div class="row" style="margin-top:12px"><button class="btn alt" onclick="closeModal()">${tr("Cancel")}</button><button class="btn" style="background:var(--bad)" onclick="confirmClearClass()">${tr("Delete all, start fresh")}</button></div>`;
+  } else if(S.modal==='videocall'){
+    const cls = chatClass();
+    inner = `<div style="text-align:center">
+      <div style="width:76px;height:76px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-size:30px;margin:6px auto 14px">📹</div>
+      <h2>${tr('Video call')} · ${esc(cls?cls.name:'Class')}</h2>
+      <p class="sub">Calling everyone in this class…</p>
+      <div class="hint" style="margin:14px 0">Simulated in this prototype. A real app would use your phone's camera and microphone, with the person's permission, over a secure connection.</div>
+      <button class="btn block" style="background:var(--bad)" onclick="closeModal()">${tr("End call")}</button></div>`;
+  } else if(S.modal==='joinclass'){
+    inner = `<h2>Connect ${esc(kid().name)} to a class</h2><p class="sub">Ask the teacher for their class code — it's on their Attendance screen.</p>
+      <label class="lab">Class code<input class="field" type="text" name="joincode" value="${esc(S.joinClassCode)}" placeholder="e.g. CLS-4821" oninput="S.joinClassCode=this.value" autocomplete="nope"></label>
+      <div class="row" style="margin-top:12px"><button class="btn alt" onclick="closeModal()">${tr("Cancel")}</button><button class="btn lock" onclick="joinClass()">${tr("Connect")}</button></div>`;
+  } else if(S.modal==='addkid'){
+    inner = `<h2>${tr("Add another child")}</h2><p class="sub">Give them their own Vault, Study Mode, Bedtime and content filter.</p>
+      <label class="lab">Child's first name</label><input class="field" type="text" value="${esc(S.newKidForm.name||'')}" placeholder="e.g. Leo" oninput="S.newKidForm.name=this.value">
+      <label class="lab">Age group</label><select class="field" onchange="S.newKidForm.age=this.value">
+        <option value="6-12" ${S.newKidForm.age==='13-18'?'':'selected'}>6–12 (elementary)</option>
+        <option value="13-18" ${S.newKidForm.age==='13-18'?'selected':''}>13–18 (high school)</option></select>
+      <p class="hint" style="margin-top:8px">Not linked to a school yet — you can connect that later, just like the first child.</p>
+      <div class="row" style="margin-top:12px"><button class="btn alt" onclick="closeModal()">${tr("Cancel")}</button><button class="btn lock" onclick="submitAddKid()">${tr("Add child")}</button></div>`;
+  } else if(S.modal==='app'){
+    const a = kid().phone.find(x=>x.n===S.openApp) || {n:S.openApp,c:'#333',i:'?'};
+    const samplePosts = [
+      {ico:'👤', name:'Alex', time:Date.now()-40*60000, body:'Anyone up for a game later tonight?'},
+      {ico:'👤', name:'Jamie', time:Date.now()-3*3600000, body:'Just posted new photos from the weekend!'},
+      {ico:'👤', name:'Taylor', time:Date.now()-26*3600000, body:'That homework was actually kind of fun today 😅'}
+    ];
+    const feed = samplePosts.map(p=>`<div class="post reg"><div class="post-head"><span class="post-ico" style="background:${a.c}">${p.ico}</span><div class="post-who"><b>${esc(p.name)}</b><span>${timeAgo(p.time)}</span></div></div><p class="post-body">${esc(p.body)}</p></div>`).join('');
+    inner = `<div style="text-align:center"><div class="ico" style="background:${a.c};width:64px;height:64px;font-size:24px;margin:0 auto 10px">${a.i}</div>
+    <h2>${esc(a.n)} is open</h2><p class="sub">Sample content — the Vault is off, so it opens and works normally.</p></div>
+    <div class="feedlist" style="margin-top:14px">${feed}</div>
+    <div class="note" style="margin-top:12px">👍 No need to move ${esc(a.n)} out of the Vault to use it, it opens right here, and stays fully protected the whole time.</div>
+    <button class="btn block" style="margin-top:12px" onclick="closeModal()">${tr("Close app")}</button>`;
+  } else if(S.modal==='perf'){
+    const rk = S.kids[S.replyKidIdx]; const rc = kidClass(rk);
+    const att = sess => rc.submitted[sess] ? (rc.att[sess][rk.desk]==='A'?'absent':rc.att[sess][rk.desk]==='L'?'late':'present') : 'not yet recorded';
+    const quizPart = rc.graded ? ('scored '+rc.graded.s+' / '+rc.graded.t+' on "'+rc.quiz.title+'"'+(released(rc)?'':' (not yet released)')) : 'no quiz recorded yet';
+    inner = `<h2>Reply to ${esc(S.names.parent)}</h2><p class="sub">This report is generated automatically. Add a short note if you'd like.</p>
+      <div class="note" style="margin:10px 0"><b>${esc(rk.name)}</b> — morning: ${att('AM')}, afternoon: ${att('PM')}. Quiz: ${quizPart}.</div>
+      <label class="lab">Your note (optional)</label>
+      <textarea id="perfNoteIn" class="field" rows="3" placeholder="e.g. Mia is doing well, just a bit quiet in class." oninput="S.kids[S.replyKidIdx].perfNote=this.value">${esc(rk.perfNote)}</textarea>
+      <p class="hint" style="margin-top:8px">📧 Sends to the app and to ${esc(S.parentEmail)}.</p>
+      <div class="row" style="margin-top:12px"><button class="btn alt" onclick="closeModal()">${tr("Cancel")}</button><button class="btn lock" onclick="sendPerfReport()">Send</button></div>`;
+  } else if(S.modal==='pin'){
+    const pt = S.pinFor==='login' ? [(S.loginRole==='parent2'?esc(S.names.parent2):esc(S.names.parent))+' sign-in','Enter the family PIN to open this parent account.']
+      : S.pinFor==='settings' ? ['Unlock settings','Enter your PIN to change Study Mode and Bedtime.']
+      : S.pinFor==='admin' ? (S.adminAction==='clear' ? ['Admin PIN required','Only the principal or vice principal can end an active alert.'] : ['Admin PIN required','Only the principal or vice principal can post a school-wide announcement.'])
+      : S.pendingRemove ? ['Enter PIN to take out '+esc(S.pendingRemove),'Apps can only leave the vault with your PIN.']
+      : S.pendingRemoveMe ? ['Enter PIN to take out '+esc(S.pendingRemoveMe),'Apps can only leave your own Vault with your PIN too.']
+      : ['Enter parent PIN','The hard lock window is over, so your PIN is enough.'];
+    inner = `<h2>${pt[0]}</h2><p class="sub">${pt[1]}</p>
+    <div class="pin"><input id="pinIn" type="password" inputmode="numeric" maxlength="4" aria-label="PIN" name="pinfield" autocomplete="nope" onkeydown="if(event.key==='Enter')checkPin()"></div>
+    <div class="err" role="alert">${S.pinErr}</div>
+    <div class="row"><button class="btn alt" onclick="closeModal()">${tr("Cancel")}</button><button class="btn" onclick="checkPin()">${tr("Confirm")}</button></div>`;
+  } else if(S.modal==='reminder'){
+    const f = S.reminderForm;
+    inner = `<h2>${f.source==='announcement'?'Save as a reminder':'Add a reminder'}</h2>
+    <p class="sub">${f.source==='announcement'?'From your school announcement. Pick when you want to be reminded.':'Pick a title, date, and time.'}</p>
+    ${f.note?`<div class="note" style="margin:10px 0">${esc(f.note)}</div>`:''}
+    <label class="lab">Title</label>
+    <input class="field" type="text" value="${esc(f.title)}" oninput="S.reminderForm.title=this.value" placeholder="e.g. Sports Day">
+    <label class="lab">Date</label>
+    <input class="field" type="date" value="${esc(f.date)}" oninput="S.reminderForm.date=this.value">
+    <label class="lab">Time (optional)</label>
+    <input class="field" type="time" value="${esc(f.time)}" oninput="S.reminderForm.time=this.value">
+    <div class="err" role="alert">${S.reminderErr||''}</div>
+    <div class="row" style="margin-top:12px"><button class="btn alt" onclick="closeModal()">${tr("Cancel")}</button><button class="btn" onclick="saveReminder()">${tr("Save")}</button></div>`;
+  } else if(S.modal==='statusNames'){
+    const cls = myClass(); const arr = cls.att[cls.session];
+    const label = {P:'Present',A:'Absent',L:'Late',E:'Excused',C:'Cut class'};
+    const names = arr.map((v,i)=>v===S.statusView?(cls.deskNames[i]||('Desk '+(i+1))):null).filter(Boolean);
+    const notes = cls.deskNotes||{};
+    inner = `<h2>${label[S.statusView]} (${names.length})</h2>
+    ${names.length?arr.map((v,i)=>{
+      if(v!==S.statusView) return '';
+      const nm = cls.deskNames[i]||('Desk '+(i+1));
+      const note = notes[cls.session+'_'+i];
+      return `<div class="app"><div class="ico" style="background:var(--bg);color:var(--ink)">${esc(nm[0]||'?')}</div><div class="nm">${esc(nm)}${note?`<div class="st">${esc(note)}</div>`:''}</div></div>`;
+    }).join(''):'<p class="sub">No one marked yet.</p>'}
+    <button class="btn alt block" style="margin-top:14px" onclick="closeModal()">Close</button>`;
+  } else if(S.modal==='classPicker'){
+    inner = classPickerModal();
+  } else if(S.modal==='cutReport'){
+    const cls = S.classes[S.cutClassIdx];
+    const name = cls.deskNames[S.cutDesk] || ('Desk '+(S.cutDesk+1));
+    inner = `<h2>Report ${esc(name)} for cutting class?</h2>
+    <p class="sub">${esc(cls.name)} · desk ${S.cutDesk+1} · ${cls.session==='AM'?'Morning':'Afternoon'} · Class advisor: ${esc(cls.teacherName)}</p>
+    <div class="row" style="gap:10px;margin-top:10px">
+      <label class="lab" style="flex:1">Subject<input class="field" value="${esc(S.cutSubject)}" oninput="S.cutSubject=this.value"></label>
+      <label class="lab" style="flex:1">Class time<input class="field" value="${esc(S.cutTime)}" oninput="S.cutTime=this.value"></label>
+    </div>
+    <label class="lab" style="margin-top:10px">Note<textarea class="field" rows="3" oninput="S.cutNote=this.value" placeholder="e.g. Not in the room after recess.">${esc(S.cutNote||'')}</textarea></label>
+    <p class="hint" style="margin-top:8px">This goes to the class advisor, ${esc(cls.teacherName)}. The parent is told only when the class advisor sends it.</p>
+    <button class="btn block" style="margin-top:12px" onclick="saveCutReport()">Send to class advisor</button>
+    <button class="btn alt block" style="margin-top:8px" onclick="closeModal()">Cancel</button>`;
+  } else if(S.modal==='deskNote'){
+    const cls = myClass();
+    const name = cls.deskNames[S.noteDesk] || ('Desk '+(S.noteDesk+1));
+    const cats = ['School activity','Sick','Family matter','Other'];
+    inner = `<h2>Mark Excused — ${esc(name)}</h2>
+    <p class="sub">Write a short reason. This is saved to the excuse log and can be reviewed again by week, month, or quarter.</p>
+    <label class="lab">Category</label>
+    <div class="row" style="gap:6px;flex-wrap:wrap;margin-bottom:10px">${cats.map(c=>`<button class="chip ${S.noteCategory===c?'on':''}" style="${S.noteCategory===c?'background:var(--ink);color:#fff':''}" onclick="S.noteCategory='${c}';render()">${c}</button>`).join('')}</div>
+    <label class="lab">Reason<textarea class="field" rows="3" oninput="S.noteDeskText=this.value" placeholder="e.g. Medical appointment">${esc(S.noteDeskText||'')}</textarea></label>
+    <div class="row" style="margin-top:12px"><button class="btn alt" onclick="closeModal()">Cancel</button><button class="btn" onclick="saveDeskNote()">Save</button></div>`;
+  } else if(S.modal==='codesGuide'){
+    inner = `<h2>How the codes work</h2>
+    <p class="sub">Four different codes, each for a different purpose.</p>
+    <div class="app"><div class="ico" style="background:#14213D">🏫</div><div class="nm">School code<div class="st">From your principal. Lets a teacher join the right school and see other teachers' sections in Class Section. Demo: SCH-2026</div></div></div>
+    <div class="app"><div class="ico" style="background:#5B6780">👩‍🏫</div><div class="nm">Class code<div class="st">Created for each section (like CLS-4821). Give it to parents so they can connect their child to that class.</div></div></div>
+    <div class="app"><div class="ico" style="background:#12867E">👪</div><div class="nm">Link code<div class="st">Shown on a parent's Vault screen (like MIA-1234). A student enters it when creating their own account, to connect to that parent.</div></div></div>
+    <div class="app"><div class="ico" style="background:#B7791F">👨‍👩‍👧</div><div class="nm">Family invite code<div class="st">Lets a second parent or guardian join the same family account, no separate PIN needed.</div></div></div>
+    <button class="btn alt block" style="margin-top:16px" onclick="closeModal()">Close</button>`;
+  } else if(S.modal==='prefs'){
+    const dark = document.documentElement.getAttribute('data-theme')==='dark' || (!document.documentElement.getAttribute('data-theme') && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    inner = `<h2>Language &amp; appearance</h2>
+    <p class="sub">These change how the app looks, not your account.</p>
+    <p class="lab" style="margin-top:14px">Language</p>
+    <div class="row" style="gap:8px"><button class="btn ${S.lang==='en'?'':'alt'}" style="flex:1" onclick="S.lang='en';render()">English</button><button class="btn ${S.lang==='fil'?'':'alt'}" style="flex:1" onclick="S.lang='fil';render()">Filipino</button></div>
+    <p class="lab" style="margin-top:16px">Appearance</p>
+    <div class="row" style="gap:8px"><button class="btn ${dark?'alt':''}" style="flex:1" onclick="document.documentElement.setAttribute('data-theme','light');render()">☀️ Light</button><button class="btn ${dark?'':'alt'}" style="flex:1" onclick="document.documentElement.setAttribute('data-theme','dark');render()">🌙 Dark</button></div>
+    <button class="btn alt block" style="margin-top:18px" onclick="closeModal()">${tr("Done")}</button>`;
+  }
+  return `<div class="scrim" role="dialog" aria-modal="true"><div class="sheet">${inner}</div></div>`;
+}
+
+/* ---------- SOS ---------- */
+const SOS_TYPES = {
+  lockdown:{name:'Lockdown', hint:'Danger inside the school, such as an armed person',
+    student:"Stay where you are and stay quiet. Silence your phone. Stay out of sight and away from doors and windows. Follow your teacher's instructions.",
+    staff:"Follow your school's lockdown plan. Secure your room, keep students quiet and out of sight, and wait for the all-clear."},
+  fire:{name:'Fire or evacuate', hint:'Fire, or another reason to leave the building',
+    student:"Leave the building now by the route your teacher shows you. Go to the assembly point and stay with your class.",
+    staff:"Follow your school's evacuation plan. Take your class list, lead students to the assembly point and count them."},
+  other:{name:'Other emergency', hint:'Any other urgent danger',
+    student:"There is an emergency at school. Stay calm and follow your teacher's instructions.",
+    staff:"Follow your school's emergency plan and check on your students."}
+};
+const clock = t => new Date(t).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
+const isTeacher = () => S.classes.some(c=>c.teacherKey===S.user) || S.user==='principal' || S.user==='vp';
+const isAdmin = () => S.user==='principal' || S.user==='vp';
+function sosBtn(){ return isTeacher() ? `<button class="chip sosbtn" onclick="openSOS()">${S.sos&&S.sos.status==='active'?'SOS active':'SOS'}</button>` : ''; }
+function openSOS(){
+  if(S.sos && S.sos.status==='active'){ S.sosDismissed[S.user]=false; render(); return; }
+  S.sosDrill=false; S.modal='sos'; render();
+}
+let holdT = null;
+function holdStart(e){
+  e.preventDefault(); if(holdT) return;
+  const t0 = Date.now();
+  holdT = setInterval(()=>{
+    const f = Math.min(1,(Date.now()-t0)/1500), bar = $('holdBar');
+    if(bar) bar.style.width = (f*100)+'%';
+    if(f>=1){ clearInterval(holdT); holdT=null; sendSOS(); }
+  }, 40);
+}
+function holdEnd(){ if(holdT){ clearInterval(holdT); holdT=null; const b=$('holdBar'); if(b) b.style.width='0'; } }
+function sendSOS(){
+  const T = SOS_TYPES[S.sosType], from = S.user;
+  const room = (from==='teacher'||from==='teacher2') ? S.classes.find(c=>c.teacherKey===from).name : 'Main office';
+  S.sos = {type:S.sosType, drill:S.sosDrill, fromRole:from, fromName:displayName(from), room, at:Date.now(), status:'active', safe:Array(60).fill(false), acks:{}};
+  S.sosDismissed = {}; S.modal = null;
+  const pre = S.sos.drill ? 'Drill: ' : 'School emergency: ';
+  S.inbox.unshift({at:Date.now(), t:pre+T.name, b:room+', sent by '+displayName(from)+' at '+clock(S.sos.at)+'. Follow the school\'s official instructions and avoid going to school unless told to.', warn:true});
+  S.sosLog.unshift({t:(S.sos.drill?'Drill · ':'')+T.name+' · '+room, b:'Sent by '+displayName(from)+' at '+clock(S.sos.at)});
+  S.announcements.unshift({t:pre+T.name, b:room+' — sent by '+displayName(from)+' at '+clock(S.sos.at)+'. Follow the school\'s official instructions.', at:Date.now(), kind:'sos'});
+  S.newAnnouncement = true;
+  render();
+}
+function imSafe(){
+  if(!S.sos||S.sos.safe[kid().desk]) return;
+  S.sos.safe[kid().desk]=true;
+  S.inbox.unshift({at:Date.now(), t:kid().name+' is safe', b:kid().name+' checked in as safe at '+clock(Date.now())+'.', ic:'✓'});
+  render();
+}
+function simCheckins(){ const cls = myClass(); const desks = classKids(S.classes.indexOf(cls)).map(k=>k.desk); S.sos.safe = S.sos.safe.map((v,i)=> v || desks.includes(i) ? v : (i%9!==4 && i%13!==2)); render(); }
+function ackSOS(){ S.sos.acks[S.user]=true; render(); }
+function minimizeSOS(){ S.sosDismissed[S.user]=true; render(); }
+function closeSOS(){ S.sosDismissed[S.user]=true; render(); }
+function sendClear(){ if(isAdmin()){ doSendClear(); render(); return; } askAdminPin('clear'); }
+function doSendClear(){
+  S.sos.status = 'clear'; S.sosDismissed = {};
+  S.sosLog.unshift({t:'All clear', b:'Sent by '+displayName(S.user)+' at '+clock(Date.now())+' (admin authorized)'});
+  S.inbox.unshift({at:Date.now(), t:'All clear at school', b:(S.sos.drill?'The drill is over.':'The emergency has ended.')+' Follow the school\'s instructions for pickup.', ic:'✓'});
+  S.announcements.unshift({t:'All clear at school', b:(S.sos.drill?'The drill is over.':'The emergency has ended.')+' Sent by '+displayName(S.user)+' at '+clock(Date.now())+'.', at:Date.now(), kind:'sos'});
+  S.newAnnouncement = true;
+}
+function sosBanner(){
+  const z=S.sos; if(!z || z.status!=='active') return '';
+  return `<div class="banner" style="background:#B3261E;color:#fff" role="alert">${z.drill?'Drill · ':''}School emergency: ${SOS_TYPES[z.type].name} at ${esc(z.room)}. Follow the school's official instructions and avoid going to school unless told to.</div>`;
+}
+function staffView(){
+  const admin = isAdmin();
+  const log = S.sosLog.length ? S.sosLog.map(m=>`<div class="app"><div class="ico" style="background:#B3261E">!</div><div class="nm">${esc(m.t)}<div class="st">${esc(m.b)}</div></div></div>`).join('') : `<p class="sub" style="margin:0">${tr('No emergency alerts yet.')}</p>`;
+  const composer = admin ? `<div class="card"><h2>📣 ${tr("Post a school announcement")}</h2><p class="sub">${tr('Every parent sees this right away. As')} ${esc(displayName(S.user))}, ${tr("no extra PIN is needed — you're already signed in as an administrator.")}</p>
+    <textarea id="annIn" class="field" rows="2" placeholder="${tr("e.g. No classes this Friday — teachers' training day.")}" oninput="S.announceDraft=this.value">${esc(S.announceDraft)}</textarea>
+    <button class="btn block" style="margin-top:10px" onclick="postAnnouncement()">${tr("Post to all parents")}</button></div>` : '';
+  const note = admin
+    ? `<p class="sub">You can end an active alert or post an announcement without re-entering a PIN, since your login already verifies who you are. Any teacher can still send an SOS instantly.</p>`
+    : `<p class="sub">When another teacher sends SOS, your whole screen turns into an alert right away. You can send one too with the red SOS button. Only the principal or vice principal can end an alert or post a school announcement.</p>`;
+  return `${composer}<div class="card"><h2>${tr("Emergency alerts")}</h2>${note}${log}</div>`;
+}
+function sosView(){
+  const z=S.sos, u=S.user;
+  if(!z || !u || u==='parent' || S.sosDismissed[u]) return '';
+  const T=SOS_TYPES[z.type], clear=z.status==='clear', time=clock(z.at);
+  const sender = isTeacher() && u===z.fromRole;
+  const drill = z.drill ? `<div class="sdrill">Drill: this is only practice</div>` : '';
+  const demo = `<button class="slink" onclick="signOut()">Demo only: switch account</button>`;
+  const clearBtn = `<button class="sbtn${sender?'':' ghost'}" onclick="sendClear()">Send all-clear (admin PIN)</button>`;
+  let body='';
+  if(clear){
+    body = `<div class="skick">${esc(z.fromName)} · ${esc(z.room)}</div><h1>All clear</h1><p>${z.drill?'The drill is over.':'The emergency has ended.'} Follow your teacher's instructions.</p><button class="sbtn" onclick="closeSOS()">${tr("Close")}</button>`;
+  } else if(u==='student'){
+    const safe=z.safe[kid().desk];
+    body = `<div class="skick">From ${esc(z.fromName)} · ${esc(z.room)} · ${time}</div><h1>${T.name}</h1><p>${T.student}</p>
+      <button class="sbtn" ${safe?'disabled':''} onclick="imSafe()">${safe?'You told everyone you are safe':"I'm safe"}</button>
+      <p class="sfine">Tapping this tells your teacher and your parent. Stay put until a teacher gives the all-clear.</p>`;
+  } else if(sender){
+    const n=z.safe.filter(Boolean).length, acked=Object.keys(z.acks).map(k=>displayName(k));
+    const grid=z.safe.map((v,i)=>`<div class="desk ${v?'P':''}"><span>${i+1}</span><small>${v?'Safe':'·'}</small></div>`).join('');
+    body = `<div class="skick">You sent this · ${time}</div><h1>${T.name} alert sent</h1>
+      <p>Sent to 60 students, all teachers and parents.</p>
+      <div class="scount"><b>${n}</b> of 60 students checked in as safe</div>
+      <div class="grid">${grid}</div>
+      <p class="sfine">Other teachers: ${acked.length?esc(acked.join(', '))+' acknowledged':'no one has acknowledged yet'}.</p>
+      <button class="sbtn ghost" onclick="simCheckins()">Demo: simulate the class responding</button>
+      <div class="snote">This app does not call emergency services. If anyone is in danger, call your local emergency number.</div>
+      ${clearBtn}<button class="sbtn ghost" onclick="minimizeSOS()">Minimize</button>`;
+  } else {
+    const ack=z.acks[u];
+    body = `<div class="skick">From ${esc(z.fromName)} · ${esc(z.room)} · ${time}</div><h1>${T.name}</h1><p>${T.staff}</p>
+      <button class="sbtn" ${ack?'disabled':''} onclick="ackSOS()">${ack?'Acknowledged':'Acknowledge'}</button>
+      ${clearBtn}<button class="sbtn ghost" onclick="minimizeSOS()">Minimize</button>`;
+  }
+  return `<div class="sosfull${clear?' clear':''}${z.drill&&!clear?' drill':''}" role="alertdialog" aria-modal="true" aria-live="assertive">${drill}${body}${demo}</div>`;
+}
+
+/* ---------- Accounts & shell ---------- */
+const NAV = {
+  parent:[['home','Vault'],['filter','Filter'],['alerts','Alerts'],['me','Me']],
+  parent2:[['home','Vault'],['filter','Filter'],['alerts','Alerts'],['me','Me']],
+  student:[['home','My Vault'],['quiz','Quiz'],['chat','Class chat']],
+  teacher:[['school','Attendance'],['quiz','Quizzes'],['chat','Class'],['classSection','Class Section']],
+  teacher2:[['school','Attendance'],['quiz','Quizzes'],['chat','Class'],['classSection','Class Section']],
+  teacher3:[['school','Attendance'],['quiz','Quizzes'],['chat','Class'],['classSection','Class Section']],
+  teacher4:[['school','Attendance'],['quiz','Quizzes'],['chat','Class'],['classSection','Class Section']],
+  teacher5:[['school','Attendance'],['quiz','Quizzes'],['chat','Class'],['classSection','Class Section']],
+  teacher6:[['school','Attendance'],['quiz','Quizzes'],['chat','Class'],['classSection','Class Section']],
+  principal:[['staff','Alerts']],
+  vp:[['staff','Alerts']]
+};
+const who = u => { const c = S.classes.find(x=>x.teacherKey===u); if(c) return c.teacherName+' · '+tr('Teacher'); return ({parent:S.names.parent+' · '+tr('Parent/Guardian'), parent2:S.names.parent2+' · '+tr('Parent/Guardian'), student:kid().name+' · '+tr('Student'), principal:S.names.principal+' · '+tr('Principal'), vp:S.names.vp+' · '+tr('Vice Principal')})[u]; };
+const TITLES = {
+  parent:{home:'Vault', filter:'Content filter', alerts:'School alerts', me:'My phone'},
+  parent2:{home:'Vault', filter:'Content filter', alerts:'School alerts', me:'My phone'},
+  student:{home:'My Vault', quiz:'Quiz', chat:'Class chat'},
+  teacher:{school:'Attendance', quiz:'Quizzes', chat:'Class', classSection:'Class Section'},
+  teacher2:{school:'Attendance', quiz:'Quizzes', chat:'Class', classSection:'Class Section'},
+  teacher3:{school:'Attendance', quiz:'Quizzes', chat:'Class', classSection:'Class Section'},
+  teacher4:{school:'Attendance', quiz:'Quizzes', chat:'Class', classSection:'Class Section'},
+  teacher5:{school:'Attendance', quiz:'Quizzes', chat:'Class', classSection:'Class Section'},
+  teacher6:{school:'Attendance', quiz:'Quizzes', chat:'Class', classSection:'Class Section'},
+  principal:{staff:'Alerts'},
+  vp:{staff:'Alerts'}
+};
+const TITLES_FIL = {
+  parent:{home:'Ang Vault', filter:'Filter ng Content', alerts:'Mga Alerto ng Paaralan', me:'Aking Telepono'},
+  parent2:{home:'Ang Vault', filter:'Filter ng Content', alerts:'Mga Alerto ng Paaralan', me:'Aking Telepono'},
+  student:{home:'Aking Vault', quiz:'Pagsusulit', chat:'Klase Chat'},
+  teacher:{school:'Pagdalo', quiz:'Mga Pagsusulit', chat:'Klase', classSection:'Seksyon ng Klase'},
+  teacher2:{school:'Pagdalo', quiz:'Mga Pagsusulit', chat:'Klase', classSection:'Seksyon ng Klase'},
+  teacher3:{school:'Pagdalo', quiz:'Mga Pagsusulit', chat:'Klase', classSection:'Seksyon ng Klase'},
+  teacher4:{school:'Pagdalo', quiz:'Mga Pagsusulit', chat:'Klase', classSection:'Seksyon ng Klase'},
+  teacher5:{school:'Pagdalo', quiz:'Mga Pagsusulit', chat:'Klase', classSection:'Seksyon ng Klase'},
+  teacher6:{school:'Pagdalo', quiz:'Mga Pagsusulit', chat:'Klase', classSection:'Seksyon ng Klase'},
+  principal:{staff:'Mga Alerto'},
+  vp:{staff:'Mga Alerto'}
+};
+function screenTitle(u,tab){ return (S.lang==='fil' && TITLES_FIL[u] && TITLES_FIL[u][tab]) || TITLES[u][tab]; }
+function go(sc){ S.screen=sc; render(); }
+function signIn(u, kidIdx){
+  S.user=u; if(u==='student') S.studentKidIndex = kidIdx!=null?kidIdx:0;
+  S.tab=NAV[u][0][0]; S.modal=null; S.toast=null; render();
+  const classIdx = S.classes.findIndex(c=>c.teacherKey===u);
+  if(classIdx>=0){
+    S.activeClassIdx = classIdx;
+    const pending = S.kids.filter(k=>k.classId===classIdx && k.perfRequested);
+    if(pending.length) setTimeout(()=>say('New request from '+S.names.parent, 'Asking for a full performance report on '+pending.map(k=>k.name).join(' & ')+'. Open Attendance to reply.'), 250);
+  }
+}
+function signOut(){ clearInterval(closeModal.t); S.unlockUntil=0; clearTimeout(unlockSettings.t); S.pinFor=null; S.user=null; S.screen='landing'; S.modal=null; S.toast=null; S.adProg=0; render(); }
+function startSignup(){ S.signup={role:null, err:''}; S.form={}; go('signup'); }
+function pickRole(r){ S.signup.role=r; S.signup.err=''; render(); }
+function submitSignup(){
+  const r=S.signup.role, f=S.form, bad=m=>{ S.signup.err=m; render(); };
+  if(!(f.name||'').trim()) return bad('Enter your full name.');
+  if(!/^\S+@\S+\.\S+$/.test(f.email||'')) return bad('Enter a valid email address.');
+  if((f.pw||'').length<6) return bad('Your password needs at least 6 characters.');
+  if(r==='parent'){
+    if(!(f.child||'').trim()) return bad("Enter your child's first name.");
+    if(!/^\d{4}$/.test(f.pin||'')) return bad('Your PIN must be exactly 4 digits.');
+    if(!f.consent) return bad('Please agree to the privacy summary to continue.');
+    S.names.parent=f.name.trim(); PIN=f.pin; S.parentEmail=f.email.trim();
+    S.kids = [newKid(f.child.trim(), f.age||'6-12', {})];
+    S.activeKid = 0;
+  } else if(r==='coparent'){
+    if((f.famcode||'').trim().toUpperCase()!==familyCode) return bad("That invite code doesn't match. Ask the primary parent for it on their Vault screen.");
+    S.names.parent2=f.name.trim();
+  } else if(r==='teacher'){
+    if((f.schoolCode||'').trim().toUpperCase()!=='SCH-2026') return bad("That school code doesn't match. Ask your principal for the code, or use the demo code SCH-2026.");
+    if(!(f.cls||'').trim()) return bad('Enter your advisory section.');
+    const newKey = 'teacher_'+Date.now();
+    S.classes.push(newClass(f.cls.trim(), newKey, f.name.trim(), makeClassCode()));
+    NAV[newKey] = [['school','Attendance'],['quiz','Quizzes'],['chat','Class']];
+    TITLES[newKey] = {school:'Attendance', quiz:'Quizzes', chat:'Class'};
+    S.newTeacherKey = newKey;
+  } else {
+    const idx = S.kids.findIndex(k=>k.linkCode===(f.code||'').trim().toUpperCase());
+    if(idx<0) return bad("That code doesn't match. Ask your parent for the link code on their Vault screen.");
+    S.studentKidIndex = idx;
+  }
+  if(r==='parent') unlockSettings();
+  const loginAs = r==='coparent' ? 'parent2' : (r==='teacher' ? S.newTeacherKey : r);
+  signIn(loginAs, r==='student'?S.studentKidIndex:undefined); say('Account created','Welcome, '+f.name.trim().split(' ')[0]+'.');
+}
+function fld(k,label,type,ph,extra){
+  return `<label class="lab">${label}<input class="field" type="${type||'text'}" name="fld_${k}" value="${esc(S.form[k]||'')}" placeholder="${ph||''}" ${extra||''} oninput="S.form.${k}=this.value" autocomplete="nope" autocorrect="off" autocapitalize="off" spellcheck="false"></label>`;
+}
+function landingView(){
+  return `<div style="padding:22px 2px 0;text-align:left">
+  <div style="display:flex;justify-content:flex-end;margin-bottom:6px">${prefsBtn()}</div>
+  <div style="display:flex;align-items:center;gap:14px">
+  <svg viewBox="0 0 200 200" style="width:120px;height:120px;flex:none;display:block" role="img" aria-label="A padlock inside a progress ring">
+    <circle cx="100" cy="100" r="84" fill="none" stroke="var(--line)" stroke-width="14"/>
+    <circle cx="100" cy="100" r="84" fill="none" stroke="var(--brand)" stroke-width="14" stroke-linecap="round" stroke-dasharray="330 528" transform="rotate(-90 100 100)"/>
+    <path d="M78 96 v-14 a22 22 0 0 1 44 0 v14" fill="none" stroke="var(--ink)" stroke-width="10" stroke-linecap="round"/>
+    <rect x="66" y="94" width="68" height="52" rx="12" fill="var(--lock)"/>
+    <circle cx="100" cy="118" r="7" fill="var(--onlock)"/>
+  </svg>
+  <div style="font:800 42px/1 var(--head);letter-spacing:-.5px">Lock &amp;<br>Connect</div>
+  </div>
+  <h1 style="font:800 27px/1.15 var(--head);margin:20px 0 10px">${t('tagline').replace(/\. /g,'.<br>')}</h1>
+  <p style="font-size:15px;color:var(--muted);margin:0 0 20px">${t('heroSub')}</p>
+  <button class="btn lock block" style="padding:14px" onclick="startSignup()">${t('createAccount')}</button>
+  <button class="btn alt block" style="margin-top:10px;padding:14px" onclick="go('login')">${t('signIn')}</button>
+  <div style="margin-top:26px">
+    <div class="app"><div class="nm">${t('forParents')}<div class="st">${t('forParentsBody')}</div></div></div>
+    <div class="app"><div class="nm">${t('forTeachers')}<div class="st">${t('forTeachersBody')}</div></div></div>
+    <div class="app"><div class="nm">${t('forStudents')}<div class="st">${t('forStudentsBody')}</div></div></div>
+  </div></div>`;
+}
+function signupView(){
+  const r=S.signup.role, err=S.signup.err?`<div class="alertbox" role="alert">${esc(S.signup.err)}</div>`:'';
+  if(!r) return `<button class="back" onclick="go('landing')">‹ Back</button>
+    <h1 style="font:800 28px/1.1 var(--head);margin:4px 0 6px">${tr("Create your account")}</h1>
+    <p class="sub">${tr("Who is signing up?")}</p>
+    <button class="opt" onclick="pickRole('parent')"><b>${tr("I'm a parent/guardian")}</b><span>${tr('Set up the Vault for your child and get school alerts')}</span></button>
+    <button class="opt" onclick="pickRole('teacher')"><b>${tr("I'm a teacher")}</b><span>${tr('Take attendance, build quizzes, run online classes')}</span></button>
+    <button class="opt" onclick="pickRole('student')"><b>${tr("I'm a student")}</b><span>${tr('You\'ll need a link code from your parent')}</span></button>`;
+  const T={parent:'Parent/Guardian account',coparent:'Co-parent account',teacher:'Teacher account',student:'Student account'}[r];
+  let more='';
+  if(r==='parent') more = fld('child',"Child's first name",'text','e.g. Mia') +
+    `<label class="lab">Child's age group<select class="field" onchange="S.form.age=this.value"><option value="6-12" ${(S.form.age||'6-12')==='6-12'?'selected':''}>6–12 (elementary)</option><option value="13-18" ${S.form.age==='13-18'?'selected':''}>13–18 (high school)</option></select></label>` +
+    fld('pin','Parent/Guardian PIN (4 digits)','password','Only you should know it','inputmode="numeric" maxlength="4"') +
+    `<label class="lab" style="display:flex;gap:8px;align-items:flex-start;margin-top:14px"><input type="checkbox" style="margin-top:3px" ${S.form.consent?'checked':''} onchange="S.form.consent=this.checked"><span>I've read the <button type="button" class="linklike" style="font-size:13px" onclick="event.preventDefault();S.modal='privacy';render()">privacy summary</button> and I'm this child's parent or legal guardian.</span></label>`;
+  if(r==='coparent') more = fld('famcode','Family invite code','text','e.g. '+familyCode) + `<p class="hint">Ask the primary parent for this — it's on their Vault screen. Demo code: ${esc(familyCode)}</p>`;
+  if(r==='teacher') more = fld('schoolCode','School code (from your principal)','text','e.g. SCH-2026') +
+    `<p class="hint">Demo school code: <b>SCH-2026</b> · <button type="button" class="linklike" style="font-size:13px" onclick="event.preventDefault();S.modal='codesGuide';render()">How the codes work</button></p>` +
+    fld('cls','Your advisory section (the class you are the advisor of)','text','e.g. Grade 6 Dahlia') +
+    fld('subject','Subject you teach','text','e.g. Science') +
+    `<p class="hint">Only testing? Go back and tap Sign in. The demo teachers already have sections with student names.</p>`;
+  if(r==='student') more = fld('code','Link code from your parent','text','e.g. MIA-1234') + `<p class="hint">Demo tip: the starting code is MIA-1234 (or LEO-5678 for Leo).</p>`;
+  return `<button class="back" onclick="pickRole(null)">‹ Back</button>
+    <h1 style="font:800 28px/1.1 var(--head);margin:4px 0 2px">${T}</h1>
+    ${err}${fld('name','Full name','text','')}${fld('email','Email','email','you@example.com')}${fld('pw','Password (6+ characters)','password','')}
+    <p style="margin:-6px 0 8px 4px"><button class="linklike" style="font-size:13px" onclick="startForgot('password')">Already have an account? Forgot your password?</button></p>
+    ${more}
+    <button class="btn lock block" style="margin-top:18px;padding:14px" onclick="submitSignup()">${tr("Create account")}</button>
+    <p class="hint" style="margin-top:10px">Prototype only: nothing is saved or sent anywhere.</p>`;
+}
+function startForgot(mode){ S.forgot = {mode: mode||'pin', step:1, email:'', code:'', sentCode:'', pin1:'', pin2:'', pw1:'', pw2:'', err:''}; go('forgot'); }
+function sendResetCode(){
+  const f = S.forgot;
+  if(!/^\S+@\S+\.\S+$/.test(f.email||'')){ f.err='Enter a valid email address.'; render(); return; }
+  if(f.mode==='pin' && f.email.trim().toLowerCase() !== S.parentEmail.trim().toLowerCase()){ f.err="We don't have that email on this family account."; render(); return; }
+  f.sentCode = String(100000 + Math.floor(Math.random()*900000));
+  f.err=''; f.step=2; render();
+  say('Code sent', 'In a real app this would be emailed to you. For this prototype, it\'s shown on screen below.');
+}
+function verifyResetCode(){
+  const f = S.forgot;
+  if((f.code||'').trim() !== f.sentCode){ f.err='That code doesn\'t match. Check the demo code below and try again.'; render(); return; }
+  f.err=''; f.step=3; render();
+}
+function resetPin(){
+  const f = S.forgot;
+  if(!/^\d{4}$/.test(f.pin1||'')){ f.err='Your new PIN must be exactly 4 digits.'; render(); return; }
+  if(f.pin1 !== f.pin2){ f.err="Those two PINs don't match."; render(); return; }
+  PIN = f.pin1; f.err='';
+  go('login');
+  say('PIN reset', 'Your new PIN is ready to use.');
+}
+function resetPassword(){
+  const f = S.forgot;
+  if((f.pw1||'').length<6){ f.err='Your new password needs at least 6 characters.'; render(); return; }
+  if(f.pw1 !== f.pw2){ f.err="Those two passwords don't match."; render(); return; }
+  f.err='';
+  go('login');
+  say('Password reset', 'Your new password is ready to use.');
+}
+function forgotView(){
+  const f = S.forgot;
+  const isPw = f.mode==='password';
+  const err = f.err ? `<div class="alertbox" role="alert">${esc(f.err)}</div>` : '';
+  if(f.step===1) return `<button class="back" onclick="go('login')">‹ Back to sign in</button>
+    <h1 style="font:800 28px/1.1 var(--head);margin:4px 0 6px">${tr("Reset your")} ${isPw?tr("password"):tr("PIN")}</h1>
+    <p class="sub">Enter the email on your account and we'll send a reset code.</p>
+    ${err}
+    <label class="lab">Email<input class="field" type="email" name="forgotemail" value="${esc(f.email)}" placeholder="you@example.com" oninput="S.forgot.email=this.value" autocomplete="nope"></label>
+    <button class="btn lock block" style="margin-top:16px;padding:14px" onclick="sendResetCode()">${tr("Send reset code")}</button>`;
+  if(f.step===2) return `<button class="back" onclick="go('login')">‹ Back to sign in</button>
+    <h1 style="font:800 28px/1.1 var(--head);margin:4px 0 6px">${tr("Enter the code")}</h1>
+    <p class="sub">We sent a 6-digit code to ${esc(f.email)}.</p>
+    ${err}
+    <label class="lab">6-digit code<input class="field" type="text" inputmode="numeric" maxlength="6" name="resetcode" value="${esc(f.code)}" placeholder="000000" oninput="S.forgot.code=this.value" autocomplete="nope"></label>
+    <p class="hint" style="margin-top:8px">Prototype only — no real email is sent. Demo code: <b>${esc(f.sentCode)}</b></p>
+    <button class="btn lock block" style="margin-top:16px;padding:14px" onclick="verifyResetCode()">Verify code</button>`;
+  if(isPw) return `<button class="back" onclick="go('login')">‹ Back to sign in</button>
+    <h1 style="font:800 28px/1.1 var(--head);margin:4px 0 6px">Set a new password</h1>
+    <p class="sub">Choose a new password (6+ characters) for your account.</p>
+    ${err}
+    <label class="lab">New password<input class="field" type="password" name="newpw1" value="${esc(f.pw1)}" oninput="S.forgot.pw1=this.value" autocomplete="nope"></label>
+    <label class="lab">Confirm new password<input class="field" type="password" name="newpw2" value="${esc(f.pw2)}" oninput="S.forgot.pw2=this.value" autocomplete="nope"></label>
+    <button class="btn lock block" style="margin-top:16px;padding:14px" onclick="resetPassword()">Save new password</button>`;
+  return `<button class="back" onclick="go('login')">‹ Back to sign in</button>
+    <h1 style="font:800 28px/1.1 var(--head);margin:4px 0 6px">Set a new PIN</h1>
+    <p class="sub">Choose a new 4-digit PIN for your parent account.</p>
+    ${err}
+    <label class="lab">New PIN<input class="field" type="password" inputmode="numeric" maxlength="4" name="newpin1" value="${esc(f.pin1)}" oninput="S.forgot.pin1=this.value" autocomplete="nope"></label>
+    <label class="lab">Confirm new PIN<input class="field" type="password" inputmode="numeric" maxlength="4" name="newpin2" value="${esc(f.pin2)}" oninput="S.forgot.pin2=this.value" autocomplete="nope"></label>
+    <button class="btn lock block" style="margin-top:16px;padding:14px" onclick="resetPin()">Save new PIN</button>`;
+}
+function loginView(){
+  const kidNames = S.kids.map(k=>esc(k.name)).join(' & ');
+  const studentBtns = S.kids.map((k,i)=>`<button class="opt" onclick="signIn('student', ${i})"><b>${esc(k.name)}</b><span>${k.classId!=null?'Student, '+esc(S.classes[k.classId].name)+' — takes quizzes, chats with the teacher':'Views their own Vault and can ask a parent to unlock'}</span></button>`).join('');
+  const teacherBtns = S.classes.map(c=>`<button class="opt" onclick="signIn('${c.teacherKey}')"><b>${esc(c.teacherName)} — ${esc(c.name)}</b><span>Teacher · attendance, quizzes, online classes, SOS · class code ${esc(c.code)}</span></button>`).join('');
+  return `<button class="back" onclick="go('landing')">‹ Back</button>
+  <h1 style="font:800 28px/1.1 var(--head);margin:4px 0 6px">${tr('Sign in')}</h1>
+  <p class="sub">Demo accounts. Each role sees different screens, and changes carry across when you switch.</p>
+  <button class="opt" onclick="askLoginPin('parent')"><b>${esc(S.names.parent)}</b><span>Parent/Guardian of ${kidNames} · PIN required${PIN==='1234'?' (demo PIN: 1234)':''} · controls the Vault, gets school alerts</span></button>
+  <p style="margin:-6px 0 14px 4px"><button class="linklike" style="font-size:13px" onclick="startForgot('pin')">Forgot your PIN?</button></p>
+  ${studentBtns}
+  ${teacherBtns}
+  <button class="opt" onclick="signIn('principal')"><b>${esc(S.names.principal)}</b><span>Principal · can end alerts and post announcements without a PIN</span></button>
+  <button class="opt" onclick="signIn('vp')"><b>${esc(S.names.vp)}</b><span>Vice Principal · same admin powers as the Principal</span></button>
+  <p class="hint" style="margin-top:14px">Real sign-in with passwords needs a backend. This previews who sees what.</p>`;
+}
+function bodyView(){
+  const u = S.user, t = S.tab;
+  if(u==='parent'||u==='parent2') return t==='home' ? homeView() : t==='filter' ? filterView() : t==='me' ? meView() : alertsView();
+  if(u==='student') return t==='home' ? studentHome() : t==='quiz' ? takeView() : chatView();
+  if(u==='principal'||u==='vp') return staffView();
+  if(t==='classSection') return classSectionView();
+  if(t==='school' && S.showExcuseLog) return excuseLogView();
+  return t==='school' ? schoolView() : t==='quiz' ? builderView() : chatView();
+}
+function layers(keepPin){
+  const oldOv = document.querySelector('.sosfull'); const keepScroll = oldOv ? oldOv.scrollTop : 0;
+  document.querySelectorAll('.toast,.scrim,.sosfull').forEach(n=>n.remove());
+  const t = document.createElement('div');
+  t.innerHTML = modalView() + sosView() + (S.toast?`<div class="toast" role="status"><b>${esc(S.toast.title)}</b>${esc(S.toast.body)}</div>`:'');
+  while(t.firstChild) $('phone').appendChild(t.firstChild);
+  if(S.modal==='pin' && $('pinIn')){ $('pinIn').value = keepPin; $('pinIn').focus(); }
+  const nv = document.querySelector('.sosfull'); if(nv) nv.scrollTop = keepScroll;
+}
+function render(){
+  try{
+    renderInner();
+  }catch(err){
+    const el = document.getElementById('view');
+    if(el){
+      el.innerHTML = '<div class="card" style="background:#FBE4E4;border:2px solid #C93B3B"><h2 style="color:#C93B3B">Something broke — please screenshot this</h2><p class="sub" style="white-space:pre-wrap;font-family:monospace;font-size:12px">'+String(err && (err.stack||err.message||err))+'</p></div>';
+    }
+    if(window.console && console.error) console.error('Render error:', err);
+  }
+}
+function renderInner(){
+  const keepPin = S.modal==='pin' && $('pinIn') ? $('pinIn').value : '';
+  const st = $('view').scrollTop;
+  if(!S.user){
+    $('top').innerHTML = ''; $('view').innerHTML = S.screen==='signup' ? signupView() : S.screen==='login' ? loginView() : S.screen==='forgot' ? forgotView() : landingView(); $('view').scrollTop = 0; $('composeWrap').innerHTML = ''; $('tabs').innerHTML = '';
+    layers(keepPin);
+    return;
+  }
+  $('top').innerHTML = `<div><h1>${screenTitle(S.user,S.tab)}</h1><small>Lock &amp; Connect · ${who(S.user)}</small></div><div class="row" style="gap:8px">${prefsBtn()}${isTeacher()?onlineChip():''}${sosBtn()}<button class="chip" onclick="signOut()">${tr("Sign out")}</button></div>`;
+  $('view').innerHTML = bodyView();
+  $('view').scrollTop = st;
+  $('composeWrap').innerHTML = S.tab==='chat' ? composeView() : '';
+  $('tabs').innerHTML = NAV[S.user].map(([k,l])=>`<button ${S.tab===k?'aria-current="page"':''} onclick="setTab('${k}')">${navLabel(l)}${(isTeacher()&&k==='school'&&kid().perfRequested)?' <span class="navdot"></span>':''}</button>`).join('');
+  layers(keepPin);
+}
+let focusedEl = null;
+document.addEventListener('focusin', e => {
+  const el = e.target;
+  if(el.matches('input, textarea, select')){
+    focusedEl = el;
+    setTimeout(() => { el.scrollIntoView({block:'center', behavior:'smooth'}); }, 300);
+  }
+});
+document.addEventListener('focusout', () => { focusedEl = null; });
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize', () => {
+    if(focusedEl) setTimeout(() => { focusedEl.scrollIntoView({block:'center', behavior:'smooth'}); }, 100);
+  });
+}
+render();
+</script>
+</body>
+</html>

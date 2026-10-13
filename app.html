@@ -1824,8 +1824,8 @@ function submitSignup(){
     if(!(f.cls||'').trim()) return bad('Enter your advisory section.');
     const newKey = 'teacher_'+Date.now();
     S.classes.push(newClass(f.cls.trim(), newKey, f.name.trim(), makeClassCode()));
-    NAV[newKey] = [['school','Attendance'],['quiz','Quizzes'],['chat','Class']];
-    TITLES[newKey] = {school:'Attendance', quiz:'Quizzes', chat:'Class'};
+    NAV[newKey] = [['school','Attendance'],['quiz','Quizzes'],['chat','Class'],['classSection','Class Section']];
+    TITLES[newKey] = {school:'Attendance', quiz:'Quizzes', chat:'Class', classSection:'Class Section'};
     S.newTeacherKey = newKey;
   } else {
     const idx = S.kids.findIndex(k=>k.linkCode===(f.code||'').trim().toUpperCase());
